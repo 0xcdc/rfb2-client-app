@@ -4,5 +4,5 @@ import EditDetailForm from './EditDetailForm';
 
 export default function Household() {
   const { id } = useParams();
-  return (<EditDetailForm id={id}/>);
+  return (<EditDetailForm id={parseInt(id)}/>);
 }
