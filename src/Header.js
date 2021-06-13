@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faBook } from '@fortawesome/free-solid-svg-icons';
-import Link from './Link';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
   return (

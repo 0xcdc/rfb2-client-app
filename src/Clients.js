@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Badge, OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
-import Link from './Link';
+import { Link } from 'react-router-dom';
 
 class Clients extends Component {
   render() {

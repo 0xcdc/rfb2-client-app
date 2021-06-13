@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Clients from './Clients';
 import Visits from './Visits';
-import Link from './Link';
+import { Link } from 'react-router-dom';
 import Header from './Header';
 import graphQL from './graphQL';
 
