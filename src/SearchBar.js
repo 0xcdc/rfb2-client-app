@@ -142,7 +142,6 @@ class SearchBar extends Component {
       clients: [],
       currentPageClients: [],
       filter: '',
-      isLoaded: false,
       showModal: false,
       visits: [],
     }
