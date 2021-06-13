@@ -1,6 +1,7 @@
 import Home from './Home';
 import Layout from './Layout';
 import Report from './Report';
+import Household from './Household';
 import {
   BrowserRouter as Router,
   Switch,
@@ -14,6 +15,9 @@ function App() {
         <Switch>
           <Route path="/report">
             <Report/>
+          </Route>
+          <Route path="/households/:id">
+            <Household/>
           </Route>
           <Route path="/">
             <Home/>
