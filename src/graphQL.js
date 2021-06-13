@@ -1,20 +1,16 @@
-
 export default function graphQL(query) {
-  let baseUrl = 'http://localhost:4000';
-  let url = '/graphQL';
-
+  let url = 'http://localhost:4000/graphQL';
   let body = JSON.stringify({query});
 
-  return fetch(`${baseUrl}${url}`, {
-    baseUrl,
-    body,
-    credentials: 'omit',
+  return fetch(url, {
+    method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    method: 'POST',
+    body,
     mode: 'cors',
+    credentials: 'omit',
   }).then(resp => {
     return resp.json();
   });
