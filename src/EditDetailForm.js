@@ -144,7 +144,7 @@ export default class EditDetailForm extends Component {
     if (this.isFormInvalid()) return 'danger';
     if (this.state.isSaving) return 'info';
     if (this.hasChanges()) return 'success';
-    return 'default';
+    return 'secondary';
   }
 
   getSaveString() {
@@ -319,11 +319,14 @@ export default class EditDetailForm extends Component {
     if(!this.state.dataReady) { return (<span/>);}
     const activeKey = this.state.key;
     const headerInfo = (
+    <>
       <h1>
         <Link to="/">
           <FontAwesomeIcon icon={faHome} />
         </Link>
         <span className='title'>Review Household Information</span>
+      </h1>
+      <div className='text-right'>
         <Button
           variant={this.getSaveState()}
           onClick={this.handleSave}
@@ -331,7 +334,8 @@ export default class EditDetailForm extends Component {
         >
           {this.getSaveString()}
         </Button>
-      </h1>
+      </div>
+      </>
     );
     const selectionColumn = (
       <ListGroup variant="flush" activeKey={activeKey}>
