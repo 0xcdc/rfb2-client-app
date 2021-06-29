@@ -1,5 +1,5 @@
 export default function graphQL(query) {
-  let url = 'http://localhost:4000/graphQL';
+  let url = '/graphQL';
   let body = JSON.stringify({query});
 
   return fetch(url, {

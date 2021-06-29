@@ -2,6 +2,7 @@
   "name": "rfb2-client",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:4000",
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@fortawesome/react-fontawesome": "^0.1.14",
