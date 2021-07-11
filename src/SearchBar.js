@@ -188,10 +188,15 @@ class SearchBar extends Component {
   }
 
   alreadyVisited() {
+    const lastVisit = new Date(this.state.lastVisit);
+    // clients get one visit a week
+    // we're going to use midnight between Sunday & Monday as the boundary
+    // this is in case people enter visits later in the week
+    const daysSinceMonday = (lastVisit.getUTCDay() - 1 + 7) % 7; //Monday = 1, +7 % 7 turns -1 into 6 for sunday
+    const mondayOfLastVisit = new Date(lastVisit - daysSinceMonday * 24 * 60 * 60 * 1000);
     const daysSinceLastVisit =
-      new Date(formatDate()) - new Date(this.state.lastVisit);
-    // 3 days
-    return daysSinceLastVisit < 3 * 24 * 60 * 60 * 1000;
+      (new Date(formatDate()) - mondayOfLastVisit) / 24 / 60 / 60 / 1000;
+    return daysSinceLastVisit < 7;
   }
 
   filterClients(filter) {
