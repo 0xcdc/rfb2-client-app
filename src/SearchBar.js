@@ -48,7 +48,7 @@ function formatDate(date) {
   let d = date;
   if (!d) d = new Date();
   if (!d.year) d = date2Obj(d);
-  return [d.year, d.month, d.day].join('-');
+  return [d.year,("0" + d.month).slice(-2), ("0" + d.day).slice(-2)].join("-");
 }
 
 function getPageNumbers(currentPage, pageCount) {
@@ -194,8 +194,10 @@ class SearchBar extends Component {
     // this is in case people enter visits later in the week
     const daysSinceMonday = (lastVisit.getUTCDay() - 1 + 7) % 7; //Monday = 1, +7 % 7 turns -1 into 6 for sunday
     const mondayOfLastVisit = new Date(lastVisit - daysSinceMonday * 24 * 60 * 60 * 1000);
-    const daysSinceLastVisit =
-      (new Date(formatDate()) - mondayOfLastVisit) / 24 / 60 / 60 / 1000;
+    const today = new Date(formatDate());
+    const secondsSinceMonday = today - mondayOfLastVisit;
+    const daysSinceLastVisit = secondsSinceMonday / 24 / 60 / 60 / 1000;
+
     return daysSinceLastVisit < 7;
   }
 
