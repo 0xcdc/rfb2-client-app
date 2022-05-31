@@ -10,7 +10,6 @@ export default function graphQL(query) {
     },
     body,
     mode: 'cors',
-    credentials: 'omit',
   }).then(resp => {
     return resp.json();
   });
