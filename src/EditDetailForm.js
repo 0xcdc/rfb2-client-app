@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faPlus } from '@fortawesome/free-solid-svg-icons';
-import IdleTimer from 'react-idle-timer';
 import graphQL from './graphQL';
 import TrackingObject from './TrackingObject';
 import ClientDetailForm from './ClientDetailForm';
@@ -56,6 +55,7 @@ export default class EditDetailForm extends Component {
       isSaving: false,
       key: 'household',
       dataReady: false,
+      timeout: 5000,
     };
   }
 
@@ -420,13 +420,11 @@ export default class EditDetailForm extends Component {
     }
     return (
       <div>
-        <IdleTimer onIdle={this.handleSave} timeout={5000}>
-          {headerInfo}
-          <Row>
-            <Col sm="2">{selectionColumn}</Col>
-            <Col sm="10">{mainPane}</Col>
-          </Row>
-        </IdleTimer>
+        {headerInfo}
+        <Row>
+          <Col sm="2">{selectionColumn}</Col>
+          <Col sm="10">{mainPane}</Col>
+        </Row>
       </div>
     );
   }
