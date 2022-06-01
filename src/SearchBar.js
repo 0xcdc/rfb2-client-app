@@ -62,10 +62,6 @@ function getPageNumbers(currentPage, pageCount) {
   return result;
 }
 
-function getToday() {
-  return date2Obj(new Date());
-}
-
 function normalizeSelection(state) {
   const { filteredClients, indexIncr, setPage, selectedClient } = state;
   let { currentPage, selectedIndex } = state;
@@ -256,12 +252,8 @@ class SearchBar extends Component {
     const { selectedClient } = this.state;
     if (selectedClient && !this.alreadyVisited(selectedClient)) {
       this.setState({ showModal: 'pending' });
-      const today = getToday();
       const query = `mutation{recordVisit(
-        householdId: ${selectedClient.householdId},
-        year:${today.year},
-        month:${today.month},
-        day:${today.day}){date}}`;
+        householdId: ${selectedClient.householdId}){date}}`;
 
       const dataAvailable = graphQL(query);
 
