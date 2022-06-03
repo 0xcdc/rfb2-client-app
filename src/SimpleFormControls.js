@@ -1,5 +1,5 @@
-import React from 'react';
 import { Col, Form } from 'react-bootstrap';
+import React from 'react';
 
 function capitalize(v) {
   return v.charAt(0).toUpperCase() + v.substring(1);

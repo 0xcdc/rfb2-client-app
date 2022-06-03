@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Form } from 'react-bootstrap';
 import {
-  SimpleFormGroupText,
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
+  SimpleFormGroupText,
 } from './SimpleFormControls';
+import { Form } from 'react-bootstrap';
 
 export default class HouseholdDetailForm extends Component {
   constructor(props) {

@@ -1,18 +1,19 @@
-import { stubClient, stubHousehold } from './stubs';
-import React, { Component } from 'react';
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { Component } from 'react';
 import { faHome, faPlus } from '@fortawesome/free-solid-svg-icons';
-import graphQL from './graphQL';
-import TrackingObject from './TrackingObject';
+import { stubClient, stubHousehold } from './stubs';
+
 import ClientDetailForm from './ClientDetailForm';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import HouseholdDetailForm from './HouseholdDetailForm';
 import { Link } from 'react-router-dom';
+import TrackingObject from './TrackingObject';
+import graphQL from './graphQL';
 import { withIdleTimer } from 'react-idle-timer';
 
 class IdleTimerComponent extends Component {
-  render() { return null; }
-};
+  render = () => null;
+}
 
 const IdleTimer = withIdleTimer(IdleTimerComponent);
 
@@ -101,8 +102,8 @@ class EditDetailForm extends Component {
       '{yesNos{id value}}',
     ];
 
-    let queries = lookupQueries;
-    if(this.id !== -1) {
+    const queries = lookupQueries;
+    if (this.id !== -1) {
       lookupQueries.push(householdQuery);
     }
 
@@ -114,7 +115,7 @@ class EditDetailForm extends Component {
         newState = { ...newState, ...json.data };
       });
 
-      if(this.id === -1) {
+      if (this.id === -1) {
         newState.household = stubHousehold();
       }
 
@@ -320,7 +321,9 @@ class EditDetailForm extends Component {
   }
 
   householdVariant() {
-    if (!this.state.dataReady) { return ''; }
+    if (!this.state.dataReady) {
+      return '';
+    }
     if (this.isHouseholdInvalid() || this.householdTO.isInvalid()) {
       return 'danger';
     }
@@ -331,25 +334,27 @@ class EditDetailForm extends Component {
   }
 
   render() {
-    if(!this.state.dataReady) { return (<span/>);}
+    if (!this.state.dataReady) {
+      return (<span/>);
+    }
     const activeKey = this.state.key;
     const headerInfo = (
-    <>
-      <h1>
-        <Link to="/">
-          <FontAwesomeIcon icon={faHome} />
-        </Link>
-        <span className='title'>Review Household Information</span>
-      </h1>
-      <div className='text-right'>
-        <Button
-          variant={this.getSaveState()}
-          onClick={this.handleSave}
-          disabled={!this.canSave()}
-        >
-          {this.getSaveString()}
-        </Button>
-      </div>
+      <>
+        <h1>
+          <Link to="/">
+            <FontAwesomeIcon icon={faHome} />
+          </Link>
+          <span className='title'>Review Household Information</span>
+        </h1>
+        <div className='text-right'>
+          <Button
+            variant={this.getSaveState()}
+            onClick={this.handleSave}
+            disabled={!this.canSave()}
+          >
+            {this.getSaveString()}
+          </Button>
+        </div>
       </>
     );
     const selectionColumn = (

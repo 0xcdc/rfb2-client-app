@@ -14,11 +14,11 @@ class TrackingObject {
 
     return this.keys().some(key => {
       return this.hasChanges(key);
-    })
+    });
   }
 
   isInvalid(key) {
-    if(key) {
+    if (key) {
       if (this.validationFunc) {
         return this.validationFunc(key, this.value[key]);
       }

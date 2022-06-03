@@ -1,6 +1,5 @@
-import React, { Component } from 'react';
 import { Button, Col, Modal, Pagination, Row } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { Component } from 'react';
 import {
   faCheckCircle,
   faPlus,
@@ -9,9 +8,10 @@ import {
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import Clients from './Clients';
-import Visits from './Visits';
-import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Header from './Header';
+import { Link } from 'react-router-dom';
+import Visits from './Visits';
 import graphQL from './graphQL';
 
 const pageSize = 8;
@@ -48,7 +48,7 @@ function formatDate(date) {
   let d = date;
   if (!d) d = new Date();
   if (!d.year) d = date2Obj(d);
-  return [d.year,("0" + d.month).slice(-2), ("0" + d.day).slice(-2)].join("-");
+  return [d.year, ('0' + d.month).slice(-2), ('0' + d.day).slice(-2)].join('-');
 }
 
 function getPageNumbers(currentPage, pageCount) {
@@ -92,9 +92,9 @@ function normalizeSelection(state) {
     filteredClients,
     selectedIndex,
     selectedClient:
-      selectedIndex < filteredClients.length
-        ? filteredClients[selectedIndex]
-        : null,
+      selectedIndex < filteredClients.length ?
+        filteredClients[selectedIndex] :
+        null,
     pageCount,
   };
   if (newState.selectedClient !== selectedClient) {
@@ -140,7 +140,7 @@ class SearchBar extends Component {
       filter: '',
       showModal: false,
       visits: [],
-    }
+    };
 
     this.handleClientSelect = this.handleClientSelect.bind(this);
     this.handleCheckIn = this.handleCheckIn.bind(this);
@@ -171,9 +171,9 @@ class SearchBar extends Component {
       });
 
       this.setState({
-          ...this.updateFilteredClients('', 0),
-        },
-        this.loadVisits()
+        ...this.updateFilteredClients('', 0),
+      },
+      this.loadVisits()
       );
     });
   }
@@ -188,7 +188,7 @@ class SearchBar extends Component {
     // clients get one visit a week
     // we're going to use midnight between Sunday & Monday as the boundary
     // this is in case people enter visits later in the week
-    const daysSinceMonday = (lastVisit.getUTCDay() - 1 + 7) % 7; //Monday = 1, +7 % 7 turns -1 into 6 for sunday
+    const daysSinceMonday = (lastVisit.getUTCDay() - 1 + 7) % 7; // Monday = 1, +7 % 7 turns -1 into 6 for sunday
     const mondayOfLastVisit = new Date(lastVisit - daysSinceMonday * 24 * 60 * 60 * 1000);
     const today = new Date(formatDate());
     const secondsSinceMonday = today - mondayOfLastVisit;
@@ -365,9 +365,9 @@ class SearchBar extends Component {
   }
 
   render() {
-    const selectedClientName = this.state.selectedClient
-      ? this.state.selectedClient.name
-      : '';
+    const selectedClientName = this.state.selectedClient ?
+      this.state.selectedClient.name :
+      '';
 
     const modal = (
       <Modal
@@ -394,9 +394,9 @@ class SearchBar extends Component {
                   style={{
                     backgroundColor: this.state.selectedClient.cardColor,
                     color:
-                      this.state.selectedClient.cardColor === 'yellow'
-                        ? 'black'
-                        : 'white',
+                      this.state.selectedClient.cardColor === 'yellow' ?
+                        'black' :
+                        'white',
                     padding: '5px 5px 2px 5px',
                     margin: '5px',
                   }}

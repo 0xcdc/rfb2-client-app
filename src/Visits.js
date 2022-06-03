@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
 import { Button, Table } from 'react-bootstrap';
+import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 

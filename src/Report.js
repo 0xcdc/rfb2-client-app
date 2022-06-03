@@ -1,5 +1,5 @@
-import React from 'react';
 import { Button, Card, Col, Form, Row, Table } from 'react-bootstrap';
+import React from 'react';
 import graphQL from './graphQL';
 
 const ageBrackets = [2, 18, 54, 110];
@@ -280,8 +280,9 @@ class Report extends React.Component {
           const { city } = this.state;
 
           householdData = householdData.filter(h => {
-            if (city === 'Bellevue + Unknown')
+            if (city === 'Bellevue + Unknown') {
               return h.city === 'Bellevue' || h.city === 'Unknown';
+            }
 
             return h.city === city;
           });
@@ -371,7 +372,7 @@ class Report extends React.Component {
 
     return (
       <div>
-         <Form inline>
+        <Form inline>
           <Form.Group>
             <Form.Label>Report:</Form.Label>
             <Form.Control
@@ -415,7 +416,7 @@ class Report extends React.Component {
           </Form.Group>{' '}
           <Button onClick={this.refreshData}>Refresh</Button>
         </Form>
-       <br />
+        <br />
         {this.state.data && (
           <Card>
             <Row>

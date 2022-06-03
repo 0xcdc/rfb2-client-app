@@ -1,16 +1,14 @@
 export default function graphQL(query) {
-  let url = '/graphQL';
-  let body = JSON.stringify({query});
+  const url = '/graphQL';
+  const body = JSON.stringify({ query });
 
   return fetch(url, {
     method: 'POST',
     headers: {
-      Accept: 'application/json',
+      'Accept': 'application/json',
       'Content-Type': 'application/json',
     },
     body,
     mode: 'cors',
-  }).then(resp => {
-    return resp.json();
-  });
-};
+  }).then(resp => resp.json());
+}

@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import React, { Component } from 'react';
 import {
-  SimpleFormGroupText,
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
+  SimpleFormGroupText,
 } from './SimpleFormControls';
 
 export default class ClientDetailForm extends Component {

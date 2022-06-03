@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
 import { Badge, OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { Component } from 'react';
 import { faChevronRight, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router-dom';
 
 class Clients extends Component {
@@ -28,13 +28,9 @@ class Clients extends Component {
                     )}
                   </td>
                 )}
-                {/* eslint
-                      jsx-a11y/no-noninteractive-element-interactions: "off",
-                      jsx-a11y/click-events-have-key-events: "off" */}
                 <td
                   onClick={() => {
-                    if (this.props.onClientSelect)
-                      this.props.onClientSelect(client, index);
+                    if (this.props.onClientSelect) this.props.onClientSelect(client, index);
                   }}
                 >
                   {`${client.name} `}
