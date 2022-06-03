@@ -8,8 +8,15 @@ import TrackingObject from './TrackingObject';
 import ClientDetailForm from './ClientDetailForm';
 import HouseholdDetailForm from './HouseholdDetailForm';
 import { Link } from 'react-router-dom';
+import { withIdleTimer } from 'react-idle-timer';
 
-export default class EditDetailForm extends Component {
+class IdleTimerComponent extends Component {
+  render() { return null; }
+};
+
+const IdleTimer = withIdleTimer(IdleTimerComponent);
+
+class EditDetailForm extends Component {
   static isClientInvalid(key, value) {
     switch (key) {
       case 'name':
@@ -55,7 +62,7 @@ export default class EditDetailForm extends Component {
       isSaving: false,
       key: 'household',
       dataReady: false,
-      timeout: 5000,
+      firstSave: true,
     };
   }
 
@@ -227,7 +234,7 @@ export default class EditDetailForm extends Component {
       .map(to => {
         const clientTO = to;
         clientTO.value.householdId = householdID;
-        let clientSave = clientTO.saveChanges(graphQL);
+        let clientSave = clientTO.saveChanges(graphQL, true);
         clientSave = clientSave.then(client => {
           clientTO.value = client;
         });
@@ -237,21 +244,30 @@ export default class EditDetailForm extends Component {
   }
 
   saveChanges() {
-    let { key } = this.state;
+    let { key, firstSave } = this.state;
     const selectedClientTO = this.clientTOs.find(to => to.value.id === key);
+    const isNewClient = this.householdTO.value.id === -1;
 
-    let householdSave = null;
-    if (this.householdTO.hasChanges() || this.householdTO.value.id === -1) {
-      householdSave = this.householdTO.saveChanges(graphQL);
+    let netOp = null;
+    if (this.householdTO.hasChanges() || isNewClient || firstSave) {
+      netOp = this.householdTO.saveChanges(graphQL, !firstSave);
+      firstSave = false;
     } else {
-      householdSave = Promise.resolve(this.state.household);
+      netOp = Promise.resolve(this.state.household);
     }
 
-    const clientSaves = householdSave.then(household => {
+    if (isNewClient) {
+      netOp = netOp.then( household => graphQL(`
+          mutation{recordVisit(
+            householdId: ${household.id}){date}}
+        `).then( () => household));
+    }
+
+    netOp = netOp.then(household => {
       return this.saveClients(household);
     });
 
-    clientSaves.finally(() => {
+    netOp.finally(() => {
       // if we saved a new client we need to update the selected key to match it's new id
       if (selectedClientTO) {
         key = selectedClientTO.value.id;
@@ -264,6 +280,7 @@ export default class EditDetailForm extends Component {
         clients: this.clientTOs.map(clientTO => {
           return clientTO.value;
         }),
+        firstSave,
       };
 
       this.setState(newState);
@@ -290,9 +307,7 @@ export default class EditDetailForm extends Component {
         .map(o => {
           return o.isInvalid();
         })
-        .find(v => {
-          return v !== false;
-        }) ||
+        .find(v => v !== false) ||
       false
     );
   }
@@ -353,7 +368,7 @@ export default class EditDetailForm extends Component {
         {this.clientTOs.map(to => {
           const c = to.value;
           let label = c.name;
-          if (label.length <= 1) label = 'Unnamed Client';
+          if (label.length < 1) label = 'Unnamed Client';
           return (
             <ListGroup.Item
               action
@@ -420,6 +435,7 @@ export default class EditDetailForm extends Component {
     }
     return (
       <div>
+        <IdleTimer timeout={1000} onIdle={this.handleSave}/>
         {headerInfo}
         <Row>
           <Col sm="2">{selectionColumn}</Col>
@@ -429,3 +445,5 @@ export default class EditDetailForm extends Component {
     );
   }
 }
+
+export default EditDetailForm;

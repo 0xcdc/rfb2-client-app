@@ -14,11 +14,11 @@ class TrackingObject {
 
     return this.keys().some(key => {
       return this.hasChanges(key);
-    });
+    })
   }
 
   isInvalid(key) {
-    if (key) {
+    if(key) {
       if (this.validationFunc) {
         return this.validationFunc(key, this.value[key]);
       }
@@ -66,16 +66,15 @@ class TrackingObject {
     return retval;
   }
 
-  saveChanges(graphQL) {
+  saveChanges(graphQL, inPlace) {
     const dataStr = this.getDataString();
     const query = `
-mutation{
-  ${this.operation}(
-    ${this.arg}: ${dataStr}
-  ) {
-      ${this.keys().join(' ')}
-    }
-}`;
+      mutation{
+        ${this.operation}(
+          ${this.arg}: ${dataStr} , inPlace: ${inPlace === true}) {
+            ${this.keys().join(' ')}
+          }
+      }`;
 
     let future = graphQL(query);
 
