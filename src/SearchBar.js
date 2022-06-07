@@ -8,6 +8,7 @@ import {
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import Clients from './Clients';
+import { DateTime } from 'luxon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Header from './Header';
 import { Link } from 'react-router-dom';
@@ -30,25 +31,6 @@ function buildLetterHistogram(value) {
   }
 
   return arr;
-}
-
-function date2Obj(date) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-
-  return {
-    year,
-    month,
-    day,
-  };
-}
-
-function formatDate(date) {
-  let d = date;
-  if (!d) d = new Date();
-  if (!d.year) d = date2Obj(d);
-  return [d.year, ('0' + d.month).slice(-2), ('0' + d.day).slice(-2)].join('-');
 }
 
 function getPageNumbers(currentPage, pageCount) {
@@ -163,6 +145,7 @@ class SearchBar extends Component {
           ...client,
           nameParts: client.name.toLowerCase().split(' '),
           histogram: buildLetterHistogram(client.name),
+          lastVisit: DateTime.fromISO(client.lastVisit),
         };
       });
 
@@ -184,17 +167,16 @@ class SearchBar extends Component {
   }
 
   alreadyVisited() {
-    const lastVisit = new Date(this.state.lastVisit);
+    let { lastVisit } = this.state;
+    if (!lastVisit) lastVisit = DateTime.now();
     // clients get one visit a week
     // we're going to use midnight between Sunday & Monday as the boundary
     // this is in case people enter visits later in the week
-    const daysSinceMonday = (lastVisit.getUTCDay() - 1 + 7) % 7; // Monday = 1, +7 % 7 turns -1 into 6 for sunday
-    const mondayOfLastVisit = new Date(lastVisit - daysSinceMonday * 24 * 60 * 60 * 1000);
-    const today = new Date(formatDate());
-    const secondsSinceMonday = today - mondayOfLastVisit;
-    const daysSinceLastVisit = secondsSinceMonday / 24 / 60 / 60 / 1000;
+    const daysSinceMonday = (lastVisit.weekday - 1 + 7) % 7; // Monday = 1, +7 % 7 turns -1 into 6 for sunday
+    const mondayOfLastVisit = lastVisit.minus({ days: daysSinceMonday });
+    const daysSinceLastVisit = DateTime.now().diff(mondayOfLastVisit, 'days');
 
-    return daysSinceLastVisit < 7;
+    return daysSinceLastVisit.days < 7;
   }
 
   filterClients(filter) {
@@ -339,9 +321,9 @@ class SearchBar extends Component {
       graphQL(query).then(json => {
         const visits = json.data.visitsForHousehold;
 
-        const lastVisit = visits.reduce((acc, cv) => {
+        const lastVisit = DateTime.fromISO(visits.reduce((acc, cv) => {
           return acc == null || cv.date > acc ? cv.date : acc;
-        }, null);
+        }, null));
 
         this.setState({
           visits,
