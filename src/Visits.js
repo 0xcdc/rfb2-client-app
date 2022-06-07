@@ -1,5 +1,6 @@
 import { Button, Table } from 'react-bootstrap';
 import React, { Component } from 'react';
+import { DateTime } from 'luxon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 
@@ -8,20 +9,11 @@ const numberOfVisitsToShow = 8;
 class Visits extends Component {
   render() {
     const visitsToShow = this.props.visits
-      .map(visit => {
-        const dateparts = visit.date.split('-');
-        // month is 0 based
-        dateparts[1] -= 1;
-        const date = new Date(...dateparts);
-        return {
-          id: visit.id,
-          date,
-        };
-      })
-      .sort((l, r) => {
-        const cmp = r.date - l.date;
-        return cmp;
-      })
+      .map(visit => ({
+        id: visit.id,
+        date: DateTime.fromISO(visit.date),
+      }))
+      .sort((l, r) => r.date - l.date)
       .slice(0, numberOfVisitsToShow);
 
     return (
@@ -36,11 +28,7 @@ class Visits extends Component {
             return (
               <tr key={`visit-${visit.id}`}>
                 <td>
-                  {visit.date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
+                  {visit.date.toISODate()}
                 </td>
                 <td className='IconColumn'>
                   <Button
