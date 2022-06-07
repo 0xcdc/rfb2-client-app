@@ -1,4 +1,5 @@
 import { Button, Card, Col, Form, Row, Table } from 'react-bootstrap';
+import { DateTime } from 'luxon';
 import React from 'react';
 import graphQL from './graphQL';
 
@@ -109,7 +110,7 @@ function summarizeHousehold(household) {
   const clientBirthYears = household.clients.map(c => {
     return c.birthYear;
   });
-  const thisYear = new Date().getFullYear();
+  const thisYear = DateTime.now().year;
   const clientAges = clientBirthYears.map(birthYear => {
     const nBirthYear = Number.parseInt(birthYear, 10);
     return Number.isInteger(nBirthYear) ? thisYear - nBirthYear : null;
@@ -130,14 +131,10 @@ function summarizeHousehold(household) {
 class Report extends React.Component {
   constructor(props) {
     super(props);
-    const now = new Date();
+    const now = DateTime.now();
     // you typically want the previous month
-    let month = now.getMonth();
-    let year = now.getFullYear();
-    if (month === 0) {
-      year -= 1;
-      month = 12;
-    }
+    const previousMonth = now.minus({ months: 1 });
+    const { month, year } = previousMonth;
     this.state = {
       data: null,
       year,
@@ -164,34 +161,22 @@ class Report extends React.Component {
 
   setFrequency(e) {
     // set the value to be a reasonable default based on the frequency
-    const now = new Date();
-    const thisYear = now.getFullYear();
+    const now = DateTime.now();
     const frequency = e.target.value;
     let value;
     let year;
     if (frequency === 'Annual') {
       // set to the previous year
-      year = thisYear - 1;
+      const lastYear = now.minus({ years: 1 });
+      ({ year } = lastYear);
       value = 1;
     } else if (frequency === 'Quarter') {
       // set to the previous quarter
-      const quarter = now.getMonth() % 3;
-      if (quarter === 0) {
-        value = 4;
-        year = thisYear - 1;
-      } else {
-        value = quarter;
-        year = thisYear;
-      }
+      const lastQuarter = now.minus({ quarters: 1 });
+      ({ year, quarter: value } = lastQuarter);
     } else if (frequency === 'Month') {
-      const lastMonth = now.getMonth() - 1;
-      if (lastMonth < 0) {
-        value = 12;
-        year = thisYear - 1;
-      } else {
-        value = lastMonth;
-        year = thisYear;
-      }
+      const lastMonth = now.minus({ months: 1 });
+      ({ year, month: value } = lastMonth);
     } else {
       throw new Error('unrecongnized frequency');
     }
