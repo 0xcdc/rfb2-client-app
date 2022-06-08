@@ -1,9 +1,9 @@
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
-import React, { Component } from 'react';
 import { faHome, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { stubClient, stubHousehold } from './stubs';
 
 import ClientDetailForm from './ClientDetailForm';
+import { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import HouseholdDetailForm from './HouseholdDetailForm';
 import { Link } from 'react-router-dom';

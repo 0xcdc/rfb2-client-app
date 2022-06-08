@@ -2,7 +2,6 @@ import { faBook, faHome } from '@fortawesome/free-solid-svg-icons';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router-dom';
-import React from 'react';
 
 export default function Header() {
   return (

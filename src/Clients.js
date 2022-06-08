@@ -1,6 +1,6 @@
 import { Badge, OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
-import React, { Component } from 'react';
 import { faChevronRight, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
+import { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router-dom';
 
