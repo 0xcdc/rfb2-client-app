@@ -6,6 +6,8 @@ module.exports = {
   'extends': [
     'google',
     'eslint:recommended',
+    'react-app',
+    'react-app/jest',
   ],
   'parserOptions': {
     'ecmaVersion': 12,
@@ -15,8 +17,8 @@ module.exports = {
     "comma-dangle": ["error", {
       "objects": "only-multiline",
       "functions": "only-multiline",
-      "arrays": "only-multiline",
       "imports": "only-multiline",
+      "arrays": "only-multiline",
     }],
     "max-len": ["error", {"code": 120}],
     "require-jsdoc": "off",
