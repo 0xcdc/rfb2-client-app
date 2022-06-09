@@ -35,7 +35,7 @@ export default function Visits(props) {
                   className='xButton'
                   size="sm"
                   onClick={() => {
-                    this.props.onDeleteVisit(visit.id);
+                    props.onDeleteVisit(visit.id);
                   }}
                 >
                   <FontAwesomeIcon className='xIcon' icon={faTimesCircle} />
