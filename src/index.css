@@ -69,3 +69,20 @@ textarea {
 .data {
   text-align: right;
 }
+
+.bg-card-red {
+  background-color: red;
+}
+
+.bg-card-blue {
+  background-color: blue;
+}
+
+.bg-card-yellow {
+  background-color: yellow;
+  color: black;
+}
+
+.bg-card-purple {
+  background-color: purple;
+}

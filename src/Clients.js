@@ -30,18 +30,15 @@ export default function Clients(props) {
                 {`${client.name} `}
                 {client.note ? (
                   <OverlayTrigger overlay={(<Tooltip>{client.note}</Tooltip>)}>
-                    <Badge variant="secondary">note</Badge>
+                    <Badge bg="secondary">note</Badge>
                   </OverlayTrigger>
                 ) : (
                   ''
                 )}
                 <Badge
-                  className="float-right"
+                  className={'float-end'}
                   pill
-                  style={{
-                    backgroundColor: client.cardColor,
-                    color: client.cardColor === 'yellow' ? 'black' : 'white',
-                  }}
+                  bg={'card-'+client.cardColor}
                 >
                   {client.householdSize}
                 </Badge>
