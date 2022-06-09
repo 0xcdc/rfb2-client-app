@@ -11,8 +11,8 @@ import TrackingObject from './TrackingObject';
 import graphQL from './graphQL';
 import { withIdleTimer } from 'react-idle-timer';
 
-class IdleTimerComponent extends Component {
-  render = () => null;
+function IdleTimerComponent() {
+  return null;
 }
 
 const IdleTimer = withIdleTimer(IdleTimerComponent);

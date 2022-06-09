@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
@@ -6,55 +6,45 @@ import {
 } from './SimpleFormControls';
 import { Form } from 'react-bootstrap';
 
-export default class HouseholdDetailForm extends Component {
-  constructor(props) {
-    super(props);
+export default function HouseholdDetailForm(props) {
+  const address1 = useRef(null);
 
-    this.address1 = React.createRef();
-  }
+  useEffect(() => {
+    address1.current.focus();
+  }, []);
 
-  componentDidMount() {
-    this.focus();
-  }
+  return (
+    <div>
+      <Form>
+        <SimpleFormGroupText
+          ref={address1}
+          group="address1"
+          label="Address 1"
+          {...props}
+        />
 
-  focus() {
-    this.address1.current.focus();
-  }
-
-  render() {
-    return (
-      <div>
-        <Form>
-          <SimpleFormGroupText
-            ref={this.address1}
-            group="address1"
-            label="Address 1"
-            {...this.props}
-          />
-
-          <SimpleFormGroupText
-            group="address2"
-            label="Address 2"
-            {...this.props}
-          />
-          <SimpleFormGroupSelect
-            group="cityId"
-            label="City"
-            normalized
-            choices={this.props.cities}
-            {...this.props}
-          />
-          <SimpleFormGroupText group="zip" {...this.props} />
-          <SimpleFormGroupRadio
-            group="incomeLevelId"
-            label="Income"
-            normalized
-            choices={this.props.incomeLevels}
-            {...this.props}
-          />
-          <SimpleFormGroupText group="note" {...this.props} />
-        </Form>
-      </div>
-    );
-  }
+        <SimpleFormGroupText
+          group="address2"
+          label="Address 2"
+          {...props}
+        />
+        <SimpleFormGroupSelect
+          group="cityId"
+          label="City"
+          normalized
+          choices={props.cities}
+          {...props}
+        />
+        <SimpleFormGroupText group="zip" {...props} />
+        <SimpleFormGroupRadio
+          group="incomeLevelId"
+          label="Income"
+          normalized
+          choices={props.incomeLevels}
+          {...props}
+        />
+        <SimpleFormGroupText group="note" {...props} />
+      </Form>
+    </div>
+  );
 }
