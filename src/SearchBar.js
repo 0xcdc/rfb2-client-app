@@ -387,15 +387,19 @@ class SearchBar extends Component {
                 </span>
                 <br />
                 {this.state.showModal === 'pending' && (
-                  <Button variant="info" size="large" block>
-                    <FontAwesomeIcon icon={faRedo} className='spinning' />{' '}
-                    Recording visit...
-                  </Button>
+                  <div className="d-grid gap-2">
+                    <Button variant="info" size="large">
+                      <FontAwesomeIcon icon={faRedo} className='spinning' />{' '}
+                      Recording visit...
+                    </Button>
+                  </div>
                 )}
                 {this.state.showModal === 'completed' && (
-                  <Button variant="primary" size="large" block>
-                    <FontAwesomeIcon icon={faCheckCircle} /> Finished
-                  </Button>
+                  <div className="d-grid gap-2">
+                    <Button variant="primary" size="large">
+                      <FontAwesomeIcon icon={faCheckCircle} /> Finished
+                    </Button>
+                  </div>
                 )}
               </div>
             )}
@@ -482,7 +486,6 @@ class SearchBar extends Component {
               clientAlreadyVisited ? 'danger' : 'success'
             }
             onClick={this.handleCheckIn}
-            block
           >
             <Row>
               <Col>
