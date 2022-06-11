@@ -13,6 +13,9 @@ module.exports = {
     'ecmaVersion': 12,
     'sourceType': 'module',
   },
+  'plugins': [
+    'react-hooks',
+  ],
   'rules': {
     "comma-dangle": ["error", {
       "objects": "only-multiline",

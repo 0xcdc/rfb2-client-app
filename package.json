@@ -34,7 +34,8 @@
     ]
   },
   "devDependencies": {
-    "react-scripts": "^5.0.1",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "react-scripts": "^5.0.1"
   }
 }
