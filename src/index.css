@@ -6,10 +6,6 @@ html {
  * Allow only vertical resizing of textareas.
  */
 
-textarea {
-  resize: vertical;
-}
-
 .selectionColumn {
   width: 32px;
 }
@@ -66,7 +62,7 @@ textarea {
   border: 0;
 }
 
-.data {
+.report_data {
   text-align: right;
 }
 
