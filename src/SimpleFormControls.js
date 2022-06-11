@@ -1,4 +1,4 @@
-import { Col, Form } from 'react-bootstrap';
+import { Col, Form, Row } from 'react-bootstrap';
 import React from 'react';
 
 function capitalize(v) {
@@ -14,13 +14,13 @@ export function SimpleFormGroup(props) {
   }
 
   return (
-    <Form.Group controlId={`formHorizontal_${props.group}`}>
-      <Form.Row>
-        <Form.Label column sm={2} style={style}>
-          {props.label || capitalize(props.group)}
-        </Form.Label>
-        <Col>{props.children}</Col>
-      </Form.Row>
+    <Form.Group as={Row} className="mb-3" controlId={`formHorizontal_${props.group}`}>
+      <Form.Label column sm={2} style={style}>
+        {props.label || capitalize(props.group)}
+      </Form.Label>
+      <Col sm={10}>
+        {props.children}
+      </Col>
     </Form.Group>
   );
 }
@@ -75,7 +75,6 @@ export function SimpleFormGroupRadio(props) {
         return (
           <Form.Check
             checked={isChecked}
-            custom
             id={`${props.group}-${id}-${obj.id}`}
             inline={inline}
             key={`${props.group}-${value}-${obj.id}`}
@@ -106,9 +105,7 @@ export function SimpleFormGroupSelect(props) {
 
   return (
     <SimpleFormGroup {...props}>
-      <Form.Control
-        as="select"
-        custom
+      <Form.Select
         onChange={e => {
           let { value } = e.target;
           if (props.normalized) {
@@ -133,7 +130,7 @@ export function SimpleFormGroupSelect(props) {
             </option>
           );
         })}
-      </Form.Control>
+      </Form.Select>
     </SimpleFormGroup>
   );
 }

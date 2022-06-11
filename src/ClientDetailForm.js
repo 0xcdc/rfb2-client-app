@@ -1,105 +1,90 @@
 import { Button, Form } from 'react-bootstrap';
-import React, { Component } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
   SimpleFormGroupText,
 } from './SimpleFormControls';
 
-export default class ClientDetailForm extends Component {
-  constructor(props) {
-    super(props);
+export default function ClientDetailForm(props) {
+  const name = useRef(null);
 
-    this.name = React.createRef();
-  }
+  useEffect(
+    () => name.current.focus(),
+    [props.client.id]
+  );
 
-  componentDidMount() {
-    this.focus();
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.client.id !== this.props.client.id) {
-      this.focus();
-    }
-  }
-
-  focus() {
-    this.name.current.focus();
-  }
-
-  render() {
-    return (
-      <Form>
-        <SimpleFormGroupText
-          ref={this.name}
-          group="name"
-          label="Name"
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.genders}
-          group="genderId"
-          label="Gender"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.yesNos}
-          group="disabled"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupText
-          group="birthYear"
-          label="Birth Year"
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.yesNos}
-          group="refugeeImmigrantStatus"
-          label="Refugee or Immigrant"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.ethnicities}
-          group="ethnicityId"
-          label="Ethnicity"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupSelect
-          choices={this.props.races}
-          group="raceId"
-          label="Race"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.yesNos}
-          group="speaksEnglish"
-          label="Speaks English"
-          normalized
-          {...this.props}
-        />
-        <SimpleFormGroupRadio
-          choices={this.props.militaryStatuses}
-          group="militaryStatusId"
-          label="Military Status"
-          normalized
-          {...this.props}
-        />
-        <Button
-          variant="link"
-          className='xButton'
-          size="sm"
-          onClick={() => {
-            this.props.onDelete(this.props.client);
-          }}
-        >
-          Delete this Client
-        </Button>
-      </Form>
-    );
-  }
+  return (
+    <Form>
+      <SimpleFormGroupText
+        ref={name}
+        group="name"
+        label="Name"
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.genders}
+        group="genderId"
+        label="Gender"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.yesNos}
+        group="disabled"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupText
+        group="birthYear"
+        label="Birth Year"
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.yesNos}
+        group="refugeeImmigrantStatus"
+        label="Refugee or Immigrant"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.ethnicities}
+        group="ethnicityId"
+        label="Ethnicity"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupSelect
+        choices={props.races}
+        group="raceId"
+        label="Race"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.yesNos}
+        group="speaksEnglish"
+        label="Speaks English"
+        normalized
+        {...props}
+      />
+      <SimpleFormGroupRadio
+        choices={props.militaryStatuses}
+        group="militaryStatusId"
+        label="Military Status"
+        normalized
+        {...props}
+      />
+      <Button
+        variant="link"
+        className='xButton'
+        size="sm"
+        onClick={() => {
+          props.onDelete(props.client);
+        }}
+      >
+        Delete this Client
+      </Button>
+    </Form>
+  );
 }

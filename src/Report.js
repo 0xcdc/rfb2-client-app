@@ -79,7 +79,7 @@ function renderValues(values) {
     return (
       <tr key={k}>
         <td>{k}:</td>
-        <td className='data'>{getValue(k, values)}</td>
+        <td className='report_data'>{getValue(k, values)}</td>
       </tr>
     );
   });
@@ -357,49 +357,52 @@ class Report extends React.Component {
 
     return (
       <div>
-        <Form inline>
-          <Form.Group>
-            <Form.Label>Report:</Form.Label>
-            <Form.Control
-              as="select"
-              value={this.state.frequency}
-              onChange={this.setFrequency}
-            >
-              {frequencies}
-            </Form.Control>
-          </Form.Group>
-          {this.state.frequency !== 'Annual' ? (
-            <Form.Group>
-              <Form.Control
-                as="select"
-                value={this.state.value}
-                onChange={this.setValue}
+        <Form>
+          <Row>
+            <Col>
+              <Form.Label>Report:</Form.Label>
+            </Col>
+            <Col>
+              <Form.Select
+                value={this.state.frequency}
+                onChange={this.setFrequency}
               >
-                {values}
-              </Form.Control>
-            </Form.Group>
-          ) : (
-            ' '
-          )}
-          <Form.Group>
-            <Form.Control
-              as="select"
-              value={this.state.year}
-              onChange={this.setYear}
-            >
-              {years}
-            </Form.Control>
-          </Form.Group>
-          <Form.Group>
-            <Form.Control
-              as="select"
-              value={this.state.city}
-              onChange={this.setCity}
-            >
-              {cities}
-            </Form.Control>
-          </Form.Group>{' '}
-          <Button onClick={this.refreshData}>Refresh</Button>
+                {frequencies}
+              </Form.Select>
+            </Col>
+            <Col>
+              {this.state.frequency !== 'Annual' ? (
+                <Form.Select
+                  value={this.state.value}
+                  onChange={this.setValue}
+                >
+                  {values}
+                </Form.Select>
+              ) : (
+                ' '
+              )}
+            </Col>
+            <Col>
+              <Form.Select
+                value={this.state.year}
+                onChange={this.setYear}
+              >
+                {years}
+              </Form.Select>
+            </Col>
+            <Col>
+              <Form.Select
+                value={this.state.city}
+                onChange={this.setCity}
+              >
+                {cities}
+              </Form.Select>
+              {' '}
+            </Col>
+            <Col>
+              <Button onClick={this.refreshData}>Refresh</Button>
+            </Col>
+          </Row>
         </Form>
         <br />
         {this.state.data && (

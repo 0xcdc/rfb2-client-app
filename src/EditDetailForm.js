@@ -11,11 +11,7 @@ import TrackingObject from './TrackingObject';
 import graphQL from './graphQL';
 import { withIdleTimer } from 'react-idle-timer';
 
-function IdleTimerComponent() {
-  return null;
-}
-
-const IdleTimer = withIdleTimer(IdleTimerComponent);
+const IdleTimer = withIdleTimer( function() {});
 
 class EditDetailForm extends Component {
   static isClientInvalid(key, value) {
@@ -346,7 +342,7 @@ class EditDetailForm extends Component {
           </Link>
           <span className='title'>Review Household Information</span>
         </h1>
-        <div className='text-right'>
+        <div className='text-end'>
           <Button
             variant={this.getSaveState()}
             onClick={this.handleSave}
@@ -438,6 +434,7 @@ class EditDetailForm extends Component {
         />
       );
     }
+
     return (
       <div>
         <IdleTimer timeout={1000} onIdle={this.handleSave}/>
