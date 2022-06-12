@@ -7,6 +7,7 @@ import Home from './Home';
 import Household from './Household';
 import Layout from './Layout';
 import Report from './Report';
+import Verification from './Verification';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path='/' element={<Home />} />
           <Route path='/report' element={<Report/>} />
           <Route path='/households/:id' element={ <Household/> } />
+          <Route path='/verification/:id' element={ <Verification/> }/>
         </Routes>
       </Router>
     </Layout>
