@@ -1,10 +1,8 @@
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
-import { faHome, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { stubClient, stubHousehold } from './stubs';
 
 import ClientDetailForm from './ClientDetailForm';
 import { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import HouseholdDetailForm from './HouseholdDetailForm';
 import { Link } from 'react-router-dom';
 import TrackingObject from './TrackingObject';
@@ -338,7 +336,7 @@ class EditDetailForm extends Component {
       <>
         <h1>
           <Link to="/">
-            <FontAwesomeIcon icon={faHome} />
+            <i class="bi bi-house-door-fill"></i>
           </Link>
           <span className='title'>Review Household Information</span>
         </h1>
@@ -393,7 +391,7 @@ class EditDetailForm extends Component {
             return c.id === -1;
           })}
         >
-          Add a new client <FontAwesomeIcon icon={faPlus} />
+          Add a new client  <i class="bi bi-plus-lg"></i>
         </ListGroup.Item>
       </ListGroup>
     );

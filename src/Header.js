@@ -1,6 +1,4 @@
-import { faBook, faHome } from '@fortawesome/free-solid-svg-icons';
 import { Button } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router-dom';
 
 export default function Header() {
@@ -8,12 +6,12 @@ export default function Header() {
     <div>
       <Link to="/">
         <Button>
-          Home <FontAwesomeIcon icon={faHome} />
+          Home <i class="bi bi-house-door-fill"></i>
         </Button>
       </Link>
       <Link to="/report">
         <Button>
-          Reports <FontAwesomeIcon icon={faBook} />
+          Reports <i class="bi bi-journal-richtext"></i>
         </Button>
       </Link>
       <br />

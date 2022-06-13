@@ -1,8 +1,5 @@
 import { Button, Table } from 'react-bootstrap';
 import { DateTime } from 'luxon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-
 
 export default function Visits(props) {
   const numberOfVisitsToShow = 8;
@@ -38,7 +35,7 @@ export default function Visits(props) {
                     props.onDeleteVisit(visit.id);
                   }}
                 >
-                  <FontAwesomeIcon className='xIcon' icon={faTimesCircle} />
+                  <i class="bi bi-x-circle-fill xIcon"></i>
                 </Button>
               </td>
             </tr>

@@ -1,6 +1,4 @@
 import { Badge, OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
-import { faChevronRight, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router-dom';
 
 export default function Clients(props) {
@@ -16,7 +14,7 @@ export default function Clients(props) {
               {props.showSelection && (
                 <td className='selectionColumn'>
                   {selectedRow ? (
-                    <FontAwesomeIcon icon={faChevronRight} />
+                    <i className="bi bi-chevron-right"></i>
                   ) : (
                     ''
                   )}
@@ -45,10 +43,7 @@ export default function Clients(props) {
               </td>
               <td className='editIcon'>
                 <Link to={`/households/${client.householdId}`}>
-                  <FontAwesomeIcon
-                    className='editIcon'
-                    icon={faPencilAlt}
-                  />
+                  <i class="bi bi-pencil-fill"></i>
                 </Link>
               </td>
             </tr>
