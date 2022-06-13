@@ -1,15 +1,7 @@
-import { Button, Col, Modal, Pagination, Row } from 'react-bootstrap';
+import { Button, Col, Modal, Pagination, Row, Spinner } from 'react-bootstrap';
 import React, { Component } from 'react';
-import {
-  faCheckCircle,
-  faPlus,
-  faRedo,
-  faThList,
-  faTimesCircle,
-} from '@fortawesome/free-solid-svg-icons';
 import Clients from './Clients';
 import { DateTime } from 'luxon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Header from './Header';
 import { Link } from 'react-router-dom';
 import Visits from './Visits';
@@ -383,13 +375,13 @@ class SearchBar extends Component {
                     margin: '5px',
                   }}
                 >
-                  <FontAwesomeIcon icon={faThList} />
+                  <i class="bi bi-card-list"></i>
                 </span>
                 <br />
                 {this.state.showModal === 'pending' && (
                   <div className="d-grid gap-2">
                     <Button variant="info" size="large">
-                      <FontAwesomeIcon icon={faRedo} className='spinning' />{' '}
+                      <Spinner animation="border" size="sm" />{' '}
                       Recording visit...
                     </Button>
                   </div>
@@ -397,7 +389,7 @@ class SearchBar extends Component {
                 {this.state.showModal === 'completed' && (
                   <div className="d-grid gap-2">
                     <Button variant="primary" size="large">
-                      <FontAwesomeIcon icon={faCheckCircle} /> Finished
+                      <i className="bi bi-check-circle-fill"></i> Finished
                     </Button>
                   </div>
                 )}
@@ -416,7 +408,7 @@ class SearchBar extends Component {
       <Row>
         <Col xs={8}>
           <Link to="/households/-1">
-            Register a new household <FontAwesomeIcon icon={faPlus} />
+            Register a new household <i className="bi bi-plus-lg"></i>
           </Link>
           <input
             ref={this.textInput}
@@ -494,10 +486,11 @@ class SearchBar extends Component {
                 {clientAlreadyVisited ? '' : selectedClientName}
               </Col>
               <Col sm>
-                <FontAwesomeIcon
-                  icon={clientAlreadyVisited ? faTimesCircle : faCheckCircle}
-                  size="3x"
-                />
+                <span style={{ fontSize: '300%' }}>
+                  {clientAlreadyVisited ?
+                    <i className="bi bi-x-circle-fill"></i> :
+                    <i className="bi bi-check-circle-fill"></i>}
+                </span>
               </Col>
             </Row>
           </Button>
