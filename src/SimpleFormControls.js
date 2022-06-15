@@ -52,6 +52,31 @@ export const SimpleFormGroupText = React.forwardRef((props, ref) => {
   );
 });
 
+function getSortedChoices(props) {
+  let choices = props.choices
+    .map(({ id, value }) => ({
+      id,
+      value: props.normalized ? id : value,
+      display: value }));
+
+  if ( !props.sortOrder ) {
+    choices.sort( ( a, b ) => {
+      // we always want unknown to be first
+      if (a.display === b.display) return 0;
+      if (a.display === 'Unknown') return -1;
+      if (b.display === 'Unknown') return 1;
+      return a.display.localeCompare(b.display);
+    });
+  } else {
+    console.assert(choices.length === props.sortOrder.length,
+      'sortOrder does not match number of options');
+    choices = props.sortOrder.map( i => choices[i]);
+  }
+
+  return choices;
+}
+
+
 export function SimpleFormGroupRadio(props) {
   const obj = { ...props.household, ...props.client };
   // render inline if the total length of the values is < 45
@@ -69,26 +94,26 @@ export function SimpleFormGroupRadio(props) {
 
   return (
     <SimpleFormGroup {...props}>
-      {props.choices.map(({ id, value }) => {
-        const v = props.normalized ? id : value;
-        const isChecked = obj[props.group] === v;
-        return (
-          <Form.Check
-            checked={isChecked}
-            id={`${props.group}-${id}-${obj.id}`}
-            inline={inline}
-            key={`${props.group}-${value}-${obj.id}`}
-            label={value}
-            name={`${props.group}-${obj.id}`}
-            onChange={() => {
-              props.onChange(obj, props.group, v);
-            }}
-            style={isChecked ? style : {}}
-            type="radio"
-            value={v}
-          />
-        );
-      })}
+      {getSortedChoices( props )
+        .map( ({ id, value, display }) => {
+          const isChecked = obj[props.group] === value;
+          return (
+            <Form.Check
+              checked={isChecked}
+              id={`${props.group}-${id}-${obj.id}`}
+              inline={inline}
+              key={`${props.group}-${value}-${obj.id}`}
+              label={display}
+              name={`${props.group}-${obj.id}`}
+              onChange={() => {
+                props.onChange(obj, props.group, value);
+              }}
+              style={isChecked ? style : {}}
+              type="radio"
+              value={value}
+            />
+          );
+        })}
     </SimpleFormGroup>
   );
 }
@@ -115,21 +140,21 @@ export function SimpleFormGroupSelect(props) {
         }}
         value={obj[props.group]}
       >
-        {props.choices.map(({ id, value }) => {
-          const v = props.normalized ? id : value;
-          const isSelected = obj[props.group] === v;
-          return (
-            <option
-              id={`${props.group}-${value}-${obj.id}`}
-              key={`${props.group}-${value}-${obj.id}`}
-              name={`${props.group}-${obj.id}`}
-              style={isSelected ? style : {}}
-              value={v}
-            >
-              {value}
-            </option>
-          );
-        })}
+        {getSortedChoices(props)
+          .map( ({ id, value, display }) => {
+            const isSelected = obj[props.group] === value;
+            return (
+              <option
+                id={`${props.group}-${value}-${obj.id}`}
+                key={`${props.group}-${value}-${obj.id}`}
+                name={`${props.group}-${obj.id}`}
+                style={isSelected ? style : {}}
+                value={value}
+              >
+                {display}
+              </option>
+            );
+          })}
       </Form.Select>
     </SimpleFormGroup>
   );
