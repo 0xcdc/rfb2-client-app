@@ -39,6 +39,7 @@ export default function HouseholdDetailForm(props) {
         label="Income"
         normalized
         choices={props.incomeLevels}
+        sortOrder="id"
         {...props}
       />
       <SimpleFormGroupText group="note" {...props} />
