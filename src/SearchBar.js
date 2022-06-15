@@ -375,7 +375,7 @@ class SearchBar extends Component {
                     margin: '5px',
                   }}
                 >
-                  <i class="bi bi-card-list"></i>
+                  <i className="bi bi-card-list"></i>
                 </span>
                 <br />
                 {this.state.showModal === 'pending' && (

@@ -43,7 +43,7 @@ export default function Clients(props) {
               </td>
               <td className='editIcon'>
                 <Link to={`/households/${client.householdId}`}>
-                  <i class="bi bi-pencil-fill"></i>
+                  <i className="bi bi-pencil-fill"></i>
                 </Link>
               </td>
             </tr>

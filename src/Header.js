@@ -6,12 +6,12 @@ export default function Header() {
     <div>
       <Link to="/">
         <Button>
-          Home <i class="bi bi-house-door-fill"></i>
+          Home <i className="bi bi-house-door-fill"></i>
         </Button>
       </Link>
       <Link to="/report">
         <Button>
-          Reports <i class="bi bi-journal-richtext"></i>
+          Reports <i className="bi bi-journal-richtext"></i>
         </Button>
       </Link>
       <br />

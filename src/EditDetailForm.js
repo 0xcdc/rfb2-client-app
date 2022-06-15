@@ -336,7 +336,7 @@ class EditDetailForm extends Component {
       <>
         <h1>
           <Link to="/">
-            <i class="bi bi-house-door-fill"></i>
+            <i className="bi bi-house-door-fill"></i>
           </Link>
           <span className='title'>Review Household Information</span>
         </h1>
@@ -391,7 +391,7 @@ class EditDetailForm extends Component {
             return c.id === -1;
           })}
         >
-          Add a new client  <i class="bi bi-plus-lg"></i>
+          Add a new client  <i className="bi bi-plus-lg"></i>
         </ListGroup.Item>
       </ListGroup>
     );
