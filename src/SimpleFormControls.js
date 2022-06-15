@@ -67,6 +67,8 @@ function getSortedChoices(props) {
       if (b.display === 'Unknown') return 1;
       return a.display.localeCompare(b.display);
     });
+  } else if ( props.sortOrder === 'id' ) {
+    choices.sort( (a, b) => a.id - b.id);
   } else {
     console.assert(choices.length === props.sortOrder.length,
       'sortOrder does not match number of options');
@@ -84,7 +86,7 @@ export function SimpleFormGroupRadio(props) {
     props.choices.reduce((accumulator, currentValue) => {
       const { value } = currentValue;
       return accumulator + value.length + 5;
-    }, 0) < 45;
+    }, 0) < 65;
   const style = {};
   if (props.getValidationState(props.group) === 'error') {
     style.color = 'red';
