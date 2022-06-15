@@ -29,15 +29,15 @@ export default function ClientDetailForm(props) {
         normalized
         {...props}
       />
+      <SimpleFormGroupText
+        group="birthYear"
+        label="Birth Year"
+        {...props}
+      />
       <SimpleFormGroupRadio
         choices={props.yesNos}
         group="disabled"
         normalized
-        {...props}
-      />
-      <SimpleFormGroupText
-        group="birthYear"
-        label="Birth Year"
         {...props}
       />
       <SimpleFormGroupRadio
@@ -58,6 +58,7 @@ export default function ClientDetailForm(props) {
         choices={props.races}
         group="raceId"
         label="Race"
+        sortOrder={[0, 5, 1, 2, 6, 4, 3, 7, 8]}
         normalized
         {...props}
       />
