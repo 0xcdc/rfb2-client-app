@@ -404,6 +404,22 @@ class SearchBar extends Component {
       this.state.selectedClient &&
       this.alreadyVisited(this.state.selectedClient);
 
+    const clientVisitedToday =
+      this.state.lastVisit &&
+      this.state.lastVisit.hasSame(DateTime.now(), 'day');
+
+    const checkInButtonVariant =
+      clientVisitedToday ? 'success' :
+        clientAlreadyVisited ? 'danger' : 'primary';
+
+    const checkInButtonText =
+      clientVisitedToday ? (<>{selectedClientName}<br />Checked in for today</>) :
+        clientAlreadyVisited ? (<>{selectedClientName}<br />Already Visited this week</>) :
+          (<>Check-in<br />{selectedClientName}</>);
+
+    const checkInButtonIcon =
+      !clientVisitedToday && clientAlreadyVisited ? 'bi-x-circle-fill' : 'bi-check-circle-fill';
+
     const mainLayout = (
       <Row>
         <Col xs={8}>
@@ -474,22 +490,16 @@ class SearchBar extends Component {
             size="lg"
             className='checkinButton'
             disabled={this.state.selectedClient ? clientAlreadyVisited : true}
-            variant={
-              clientAlreadyVisited ? 'danger' : 'success'
-            }
+            variant={checkInButtonVariant}
             onClick={this.handleCheckIn}
           >
             <Row>
               <Col>
-                {clientAlreadyVisited ? 'Client already visited' : 'Check-in'}
-                <br />
-                {clientAlreadyVisited ? '' : selectedClientName}
+                {checkInButtonText}
               </Col>
               <Col sm>
                 <span style={{ fontSize: '300%' }}>
-                  {clientAlreadyVisited ?
-                    <i className="bi bi-x-circle-fill"></i> :
-                    <i className="bi bi-check-circle-fill"></i>}
+                  <i className={'bi ' + checkInButtonIcon}></i>
                 </span>
               </Col>
             </Row>
