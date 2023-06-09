@@ -38,6 +38,8 @@ function getPageNumbers(currentPage, pageCount) {
 
 function normalizeSelection(state) {
   const { filteredClients, indexIncr, setPage, selectedClient } = state;
+  if (!filteredClients) return {};
+
   let { currentPage, selectedIndex } = state;
 
   if (indexIncr) {
@@ -132,7 +134,7 @@ class SearchBar extends Component {
     graphQL(
       '{clients{id, name, householdId, householdSize, cardColor, lastVisit, note}}',
     ).then(json => {
-      this.clients = json.data.clients.map(client => {
+      const clients = json.data.clients.map(client => {
         return {
           ...client,
           nameParts: client.name.toLowerCase().split(' '),
@@ -141,15 +143,16 @@ class SearchBar extends Component {
         };
       });
 
-      this.clients.sort((a, b) => {
+      clients.sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
 
-      this.setState({
-        ...this.updateFilteredClients('', 0),
-      },
-      this.loadVisits()
-      );
+      this.setState({ clients }, () => {
+        this.setState({
+          ...this.updateFilteredClients(this.textInput.current.value, 0),
+        },
+        this.loadVisits);
+      });
     });
   }
 
@@ -173,11 +176,11 @@ class SearchBar extends Component {
 
   filterClients(filter) {
     if (filter.length === 0) {
-      return this.clients;
+      return this.state.clients;
     }
     const filterParts = filter.toLowerCase().split(' ');
 
-    let filteredClients = this.clients.map(client => {
+    let filteredClients = this.state.clients.map(client => {
       let exactMatch = 0;
       const { nameParts } = client;
       filterParts.forEach(filterPart => {
