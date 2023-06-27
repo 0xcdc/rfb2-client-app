@@ -181,16 +181,22 @@ class SearchBar extends Component {
     const filterParts = filter.toLowerCase().split(' ');
 
     let filteredClients = this.state.clients.map(client => {
+      // exactMatch is trying for when the name is typed 100% correctly
+      // it's a score based on the number of characters that have been typed
+      // divided by the length of the actual name
+      //
+      // therefore typing To for Tom = .67 (2/3) & for Tommy would = .4 (2/5)
+      // which causes Tom to sort before Tommy
+      // once you type Tomm, it's no longer an exact match for Tom
+      // and Tommy will bubble above
       let exactMatch = 0;
       const { nameParts } = client;
       filterParts.forEach(filterPart => {
-        if (
-          nameParts.some(namePart => {
-            return namePart.startsWith(filterPart);
-          })
-        ) {
-          exactMatch += filterPart.length;
-        }
+        nameParts.forEach( namePart => {
+          if (namePart.startsWith(filterPart)) {
+            exactMatch += filterPart.length / namePart.length;
+          }
+        });
       });
 
       const filterHist = buildLetterHistogram(filter);
