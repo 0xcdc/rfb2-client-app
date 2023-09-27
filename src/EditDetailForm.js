@@ -1,3 +1,4 @@
+import './styles.css';
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
 import { stubClient, stubHousehold } from './stubs';
 
@@ -5,9 +6,11 @@ import ClientDetailForm from './ClientDetailForm';
 import { Component } from 'react';
 import HouseholdDetailForm from './HouseholdDetailForm';
 import { Link } from 'react-router-dom';
+import React from 'react';
 import TrackingObject from './TrackingObject';
 import graphQL from './graphQL';
 import { withIdleTimer } from 'react-idle-timer';
+
 
 const IdleTimer = withIdleTimer( function() {});
 
@@ -335,32 +338,20 @@ class EditDetailForm extends Component {
     const headerInfo = (
       <>
         <h1>
-    <Link to="/">
-      <button className="red-x-button" type="button">X</button>
-    </Link>
-    <span className='title'>Review Household Information</span>
-  </h1>
-  <div className='text-end'>
-    <Button
-      variant={this.getSaveState()}
-      onClick={this.handleSave}
-      disabled={!this.canSave()}
-    >
-      {this.getSaveString()}
-    </Button>
-  </div>
-  <style>
-    .red-x-button {
-      background-color: red;
-      color: white;
-      border: none;
-      border-radius: 0%;
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-    }
-  </style>
+          <Link to="/">
+            <button className="red-x-button" type="button">X</button>
+          </Link>
+          <span className='title'>Review Household Information</span>
+        </h1>
+        <div className='text-end'>
+          <Button
+            variant={this.getSaveState()}
+            onClick={this.handleSave}
+            disabled={!this.canSave()}
+          >
+            {this.getSaveString()}
+          </Button>
+        </div>
       </>
     );
     const selectionColumn = (
