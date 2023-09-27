@@ -335,20 +335,32 @@ class EditDetailForm extends Component {
     const headerInfo = (
       <>
         <h1>
-          <Link to="/">
-            <i className="bi bi-house-door-fill"></i>
-          </Link>
-          <span className='title'>Review Household Information</span>
-        </h1>
-        <div className='text-end'>
-          <Button
-            variant={this.getSaveState()}
-            onClick={this.handleSave}
-            disabled={!this.canSave()}
-          >
-            {this.getSaveString()}
-          </Button>
-        </div>
+    <Link to="/">
+      <button className="red-x-button" type="button">X</button>
+    </Link>
+    <span className='title'>Review Household Information</span>
+  </h1>
+  <div className='text-end'>
+    <Button
+      variant={this.getSaveState()}
+      onClick={this.handleSave}
+      disabled={!this.canSave()}
+    >
+      {this.getSaveString()}
+    </Button>
+  </div>
+  <style>
+    .red-x-button {
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 0%;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+    }
+  </style>
       </>
     );
     const selectionColumn = (
