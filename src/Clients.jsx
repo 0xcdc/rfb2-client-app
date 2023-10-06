@@ -14,7 +14,7 @@ export default function Clients(props) {
               {props.showSelection && (
                 <td className='selectionColumn'>
                   {selectedRow ? (
-                    <i className="bi bi-chevron-right"></i>
+                    <i className="bi bi-chevron-right" />
                   ) : (
                     ''
                   )}
@@ -36,14 +36,14 @@ export default function Clients(props) {
                 <Badge
                   className={'float-end'}
                   pill
-                  bg={'card-'+client.cardColor}
+                  bg={`card-${client.cardColor}`}
                 >
                   {client.householdSize}
                 </Badge>
               </td>
               <td className='editIcon'>
                 <Link to={`/households/${client.householdId}`}>
-                  <i className="bi bi-pencil-fill"></i>
+                  <i className="bi bi-pencil-fill" />
                 </Link>
               </td>
             </tr>

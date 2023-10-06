@@ -6,8 +6,7 @@ module.exports = {
   'extends': [
     'google',
     'eslint:recommended',
-    'react-app',
-    'react-app/jest',
+    'preact',
   ],
   'parserOptions': {
     'ecmaVersion': 12,

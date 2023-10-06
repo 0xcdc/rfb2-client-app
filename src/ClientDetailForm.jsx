@@ -1,10 +1,10 @@
 import { Button, Form } from 'react-bootstrap';
-import React, { useEffect, useRef } from 'react';
 import {
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
   SimpleFormGroupText,
-} from './SimpleFormControls';
+} from './SimpleFormControls.jsx';
+import { useEffect, useRef } from 'preact/hooks';
 
 export default function ClientDetailForm(props) {
   const name = useRef(null);

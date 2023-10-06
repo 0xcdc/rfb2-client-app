@@ -35,7 +35,7 @@ export default function Visits(props) {
                     props.onDeleteVisit(visit.id);
                   }}
                 >
-                  <i className="bi bi-x-circle-fill xIcon"></i>
+                  <i className="bi bi-x-circle-fill xIcon" />
                 </Button>
               </td>
             </tr>

@@ -1,5 +1,5 @@
 import { Col, Form, Row } from 'react-bootstrap';
-import React from 'react';
+import { forwardRef } from 'preact/compat';
 
 function capitalize(v) {
   return v.charAt(0).toUpperCase() + v.substring(1);
@@ -25,7 +25,7 @@ export function SimpleFormGroup(props) {
   );
 }
 
-export const SimpleFormGroupText = React.forwardRef((props, ref) => {
+export const SimpleFormGroupText = forwardRef((props, ref) => {
   const obj = { ...props.household, ...props.client };
   const style = {};
   if (props.getValidationState(props.group) === 'error') {
@@ -147,9 +147,9 @@ export function SimpleFormGroupSelect(props) {
             const isSelected = obj[props.group] === value;
             return (
               <option
-                id={`${props.group}-${value}-${obj.id}`}
-                key={`${props.group}-${value}-${obj.id}`}
-                name={`${props.group}-${obj.id}`}
+                id={`${props.group}-${value}-${id}`}
+                key={`${props.group}-${value}-${id}`}
+                name={`${props.group}-${id}`}
                 style={isSelected ? style : {}}
                 value={value}
               >

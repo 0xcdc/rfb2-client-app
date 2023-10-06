@@ -1,7 +1,7 @@
 import { Button, Card, Col, Form, Row, Table } from 'react-bootstrap';
+import { Component } from 'preact';
 import { DateTime } from 'luxon';
-import React from 'react';
-import graphQL from './graphQL';
+import graphQL from './graphQL.js';
 
 const ageBrackets = [2, 18, 54, 110];
 function ageIndex(age) {
@@ -128,7 +128,7 @@ function summarizeHousehold(household) {
   return retval;
 }
 
-class Report extends React.Component {
+class Report extends Component {
   constructor(props) {
     super(props);
     const now = DateTime.now();

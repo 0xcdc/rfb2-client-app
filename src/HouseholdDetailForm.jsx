@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
 import {
   SimpleFormGroupRadio,
   SimpleFormGroupSelect,
   SimpleFormGroupText,
-} from './SimpleFormControls';
+} from './SimpleFormControls.jsx';
+import { useEffect, useRef } from 'preact/hooks';
 import { Form } from 'react-bootstrap';
 
 export default function HouseholdDetailForm(props) {

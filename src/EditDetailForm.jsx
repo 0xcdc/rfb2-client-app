@@ -1,18 +1,17 @@
 import './styles.css';
 import { Button, Col, ListGroup, Row } from 'react-bootstrap';
-import { stubClient, stubHousehold } from './stubs';
+import { stubClient, stubHousehold } from './stubs.js';
 
-import ClientDetailForm from './ClientDetailForm';
-import { Component } from 'react';
-import HouseholdDetailForm from './HouseholdDetailForm';
+import ClientDetailForm from './ClientDetailForm.jsx';
+import { Component } from 'preact';
+import HouseholdDetailForm from './HouseholdDetailForm.jsx';
 import { Link } from 'react-router-dom';
-import React from 'react';
-import TrackingObject from './TrackingObject';
-import graphQL from './graphQL';
+import TrackingObject from './TrackingObject.js';
+import graphQL from './graphQL.js';
 import { withIdleTimer } from 'react-idle-timer';
 
 
-const IdleTimer = withIdleTimer( function() {});
+const IdleTimer = withIdleTimer( () => {});
 
 class EditDetailForm extends Component {
   static isClientInvalid(key, value) {
@@ -332,7 +331,7 @@ class EditDetailForm extends Component {
 
   render() {
     if (!this.state.dataReady) {
-      return (<span/>);
+      return (<span />);
     }
     const activeKey = this.state.key;
     const headerInfo = (
@@ -394,7 +393,7 @@ class EditDetailForm extends Component {
             return c.id === -1;
           })}
         >
-          Add a new client  <i className="bi bi-plus-lg"></i>
+          Add a new client  <i className="bi bi-plus-lg" />
         </ListGroup.Item>
       </ListGroup>
     );
@@ -438,7 +437,7 @@ class EditDetailForm extends Component {
 
     return (
       <div>
-        <IdleTimer timeout={3000} onIdle={this.handleSave}/>
+        <IdleTimer timeout={3000} onIdle={this.handleSave} />
         {headerInfo}
         <Row>
           <Col sm="2">{selectionColumn}</Col>

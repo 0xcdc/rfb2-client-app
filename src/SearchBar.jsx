@@ -1,10 +1,10 @@
 import { Button, Col, Modal, Pagination, Row, Spinner } from 'react-bootstrap';
-import React, { Component } from 'react';
-import Clients from './Clients';
+import { createRef, Component } from 'preact';
+import Clients from './Clients.jsx';
 import { DateTime } from 'luxon';
-import Header from './Header';
+import Header from './Header.jsx';
 import { Link } from 'react-router-dom';
-import Visits from './Visits';
+import Visits from './Visits.jsx';
 import graphQL from './graphQL';
 
 const pageSize = 8;
@@ -108,7 +108,7 @@ class SearchBar extends Component {
   constructor(props) {
     super(props);
 
-    this.textInput = React.createRef();
+    this.textInput = createRef();
 
     this.state = {
       clients: [],
@@ -378,7 +378,7 @@ class SearchBar extends Component {
                     margin: '5px',
                   }}
                 >
-                  <i className="bi bi-card-list"></i>
+                  <i className="bi bi-card-list" />
                 </span>
                 <br />
                 {this.state.showModal === 'pending' && (
@@ -392,7 +392,7 @@ class SearchBar extends Component {
                 {this.state.showModal === 'completed' && (
                   <div className="d-grid gap-2">
                     <Button variant="primary" size="large">
-                      <i className="bi bi-check-circle-fill"></i> Finished
+                      <i className="bi bi-check-circle-fill" /> Finished
                     </Button>
                   </div>
                 )}
@@ -427,7 +427,7 @@ class SearchBar extends Component {
       <Row>
         <Col xs={8}>
           <Link to="/households/-1">
-            Register a new household <i className="bi bi-plus-lg"></i>
+            Register a new household <i className="bi bi-plus-lg" />
           </Link>
           <input
             ref={this.textInput}
@@ -502,7 +502,7 @@ class SearchBar extends Component {
               </Col>
               <Col sm>
                 <span style={{ fontSize: '300%' }}>
-                  <i className={'bi ' + checkInButtonIcon}></i>
+                  <i className={`bi ${checkInButtonIcon}`} />
                 </span>
               </Col>
             </Row>
