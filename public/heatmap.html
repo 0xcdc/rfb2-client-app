@@ -6,21 +6,8 @@
 
     <link rel="stylesheet" type="text/css" href="./heatmap_style.css" />
     <script type="module">
+      import graphQL from "../src/graphQL.js";
       import { initMap } from "./heatmap_code.js";
-      function graphQL(query) {
-        const url = '/graphQL';
-        const body = JSON.stringify({ query });
-
-        return fetch(url, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body,
-          mode: 'cors',
-        }).then(resp => resp.json());
-      }
 
       graphQL(`{credentials { googleApiKey }}`).then( json => {
         let { googleApiKey } = json.data.credentials;
