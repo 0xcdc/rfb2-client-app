@@ -121,7 +121,7 @@ const checkStatus = response => {
 }
 
 async function graphQL(query, key) {
-  const url = `/graphql`;
+  const url = `/graphQL`;
   const body = JSON.stringify({ query });
 
   let response = await fetch(url, {
