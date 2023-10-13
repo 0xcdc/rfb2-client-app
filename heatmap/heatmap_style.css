@@ -1,6 +1,6 @@
-/* 
+/*
  * Always set the map height explicitly to define the size of the div element
- * that contains the map. 
+ * that contains the map.
  */
 
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css");
@@ -9,8 +9,8 @@
   height: 100%;
 }
 
-/* 
- * Optional: Makes the sample page fill the window. 
+/*
+ * Optional: Makes the sample page fill the window.
  */
 html,
 body {
