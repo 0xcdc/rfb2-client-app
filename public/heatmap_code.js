@@ -107,7 +107,7 @@ function changeOpacity() {
 }
 
 async function getCoordinates() {
-  const query = `{households(ids: []) { latlng }}`;
+  const query = `{households(ids: []) { latlng lastVisit }}`;
 
   const json = await graphQL(query, 'households');
   let { households } = json.data;
