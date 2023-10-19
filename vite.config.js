@@ -10,7 +10,8 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         heatmap: resolve(__dirname, 'heatmap/heatmap.html'),
-      },      /**
+      },
+      /**
        * Ignore "use client" waning since we are not using SSR
        * @see {@link https://github.com/TanStack/query/pull/5161#issuecomment-1477389761 Preserve 'use client' directives TanStack/query#5161}
        */
