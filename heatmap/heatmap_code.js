@@ -63,8 +63,33 @@ export async function initMap() {
   document
     .getElementById("change-dissipating")
     .addEventListener("click", toggleDissipating);
-}
+  document
+    .getElementById("visitedThisYear")
+    .addEventListener("change", visitThisYear)
 
+}
+async function visitThisYear() {
+   //This is my ideas of the visitedThisYear event handler code
+   /* 
+   const checkbox = doccument.getElementById("visitedThisYear");
+   const isChecked = checkbox.checked;
+   if(isChecked){
+     const currentYear = new Date().getFullYear();
+     const filteredData = data.filter((visit) => {
+       const visitYear = new Data(visit.date).getFullYear();
+       return visitYear === currentYear;
+       });
+       
+       heatmap.setData(filteredData);
+       } else {
+       heatmap.setData(data);
+       }*/
+    let data = (await getFilteredCoordinates())
+    .filter( c => Math.abs(c.lat - foodbankLocation.lat) < 1)
+    .filter( c => Math.abs(c.lng - foodbankLocation.lng) < 1)
+    .map( c => new LatLng(c.lat, c.lng));
+    heatmap.setData(data);
+}
 function toggleDissipating() {
   let dissipating = heatmap.get("dissipating") ?? true;
   heatmap.set("dissipating",  dissipating ^ true);
@@ -113,6 +138,18 @@ async function getCoordinates() {
   let { households } = json.data;
   let coordinates = households
     .map( h => h.latlng)
+    .filter( c => c && true)
+    .map( c => JSON.parse(c));
+  return coordinates;
+}
+async function getFilteredCoordinates() {
+  const query = `{households(ids: []) { latlng lastVisit }}`;
+
+  const json = await graphQL(query, 'households');
+  let { households } = json.data;
+  let coordinates = households
+    .map( h => h.latlng)
+    .filter(h.lastVisit > '2023')
     .filter( c => c && true)
     .map( c => JSON.parse(c));
   return coordinates;
