@@ -1,98 +1,42 @@
 import graphQL from "../src/graphQL.js";
 
-let map, heatmap;
+let map;
+let heatmap;
+let allHouseholds;
+let LatLng;
 
-export async function initMap() {
-  const foodbankLocation = {
-    lat: 47.627714616397895,
-    lng: -122.13934521724865,
-  };
+const foodbankLocation = {
+  lat: 47.627714616397895,
+  lng: -122.13934521724865,
+};
 
-  const { Map } = await window.google.maps.importLibrary("maps");
-  map = new Map(document.getElementById("map"), {
-    mapId: '589e2a0c6caa913a',
-    zoom: 13,
-    center: foodbankLocation,
-  });
+async function loadCoordinates() {
+  const query = `{households(ids: []) { latlng lastVisit }}`;
 
-  const { AdvancedMarkerElement } = await window.google.maps.importLibrary("marker");
+  const json = await graphQL(query, 'households');
+  const { households } = json.data;
+  allHouseholds = households;
+}
 
-  const pinElement = document.createElement("i");
-  pinElement.className = "bi-bank foodbank-icon";
+function getLocationsForHousehold(households) {
+  const coordinates = households
+    .map( h => h.latlng)
+    .filter( c => c && true)
+    .map( c => JSON.parse(c));
 
-
-  new AdvancedMarkerElement({
-    position: foodbankLocation,
-    map,
-    title: "Renewal Food Bank",
-    content: pinElement,
-  });
-
-
-  const { LatLng } = await window.google.maps.importLibrary("core");
-  //coordinates too far away cause it to not work
-  let data = (await getCoordinates())
+  // coordinates too far away cause it to not work
+  const data = coordinates
     .filter( c => Math.abs(c.lat - foodbankLocation.lat) < 1)
     .filter( c => Math.abs(c.lng - foodbankLocation.lng) < 1)
     .map( c => new LatLng(c.lat, c.lng));
 
-  const { HeatmapLayer } = await window.google.maps.importLibrary("visualization");
-  heatmap = new HeatmapLayer({
-    data,
-    dissipating: true,
-    radius: 30,
-    map,
-    opacity: 0.8,
-  });
-
-  document
-    .getElementById("toggle-heatmap")
-    .addEventListener("click", toggleHeatmap);
-  document
-    .getElementById("change-gradient")
-    .addEventListener("click", changeGradient);
-  document
-    .getElementById("change-opacity")
-    .addEventListener("click", changeOpacity);
-  document
-    .getElementById("increase-radius")
-    .addEventListener("click", () => changeRadius(5));
-  document
-    .getElementById("decrease-radius")
-    .addEventListener("click", () => changeRadius(-5));
-  document
-    .getElementById("change-dissipating")
-    .addEventListener("click", toggleDissipating);
-  document
-    .getElementById("visitedThisYear")
-    .addEventListener("change", visitThisYear)
-
+  return data;
 }
-async function visitThisYear() {
-   //This is my ideas of the visitedThisYear event handler code
-   /* 
-   const checkbox = doccument.getElementById("visitedThisYear");
-   const isChecked = checkbox.checked;
-   if(isChecked){
-     const currentYear = new Date().getFullYear();
-     const filteredData = data.filter((visit) => {
-       const visitYear = new Data(visit.date).getFullYear();
-       return visitYear === currentYear;
-       });
-       
-       heatmap.setData(filteredData);
-       } else {
-       heatmap.setData(data);
-       }*/
-    let data = (await getFilteredCoordinates())
-    .filter( c => Math.abs(c.lat - foodbankLocation.lat) < 1)
-    .filter( c => Math.abs(c.lng - foodbankLocation.lng) < 1)
-    .map( c => new LatLng(c.lat, c.lng));
-    heatmap.setData(data);
-}
+
+
 function toggleDissipating() {
-  let dissipating = heatmap.get("dissipating") ?? true;
-  heatmap.set("dissipating",  dissipating ^ true);
+  const dissipating = heatmap.get("dissipating") ?? true;
+  heatmap.set("dissipating", dissipating ^ true);
 }
 
 function toggleHeatmap() {
@@ -131,26 +75,82 @@ function changeOpacity() {
   heatmap.set("opacity", opacity);
 }
 
-async function getCoordinates() {
-  const query = `{households(ids: []) { latlng lastVisit }}`;
+async function visitThisYear() {
+  // This is my ideas of the visitedThisYear event handler code
+  /*
+     const checkbox = doccument.getElementById("visitedThisYear");
+     const isChecked = checkbox.checked;
+     if(isChecked){
+     const currentYear = new Date().getFullYear();
+     const filteredData = data.filter((visit) => {
+     const visitYear = new Data(visit.date).getFullYear();
+     return visitYear === currentYear;
+     });
 
-  const json = await graphQL(query, 'households');
-  let { households } = json.data;
-  let coordinates = households
-    .map( h => h.latlng)
-    .filter( c => c && true)
-    .map( c => JSON.parse(c));
-  return coordinates;
+     heatmap.setData(filteredData);
+     } else {
+     heatmap.setData(data);
+     }*/
+  const filteredHouseholds=allHouseholds.filter(h => h.lastVisit > '2023');
+  const data = getLocationsForHousehold(filteredHouseholds);
+  heatmap.setData(data);
 }
-async function getFilteredCoordinates() {
-  const query = `{households(ids: []) { latlng lastVisit }}`;
 
-  const json = await graphQL(query, 'households');
-  let { households } = json.data;
-  let coordinates = households
-    .map( h => h.latlng)
-    .filter(h.lastVisit > '2023')
-    .filter( c => c && true)
-    .map( c => JSON.parse(c));
-  return coordinates;
+export async function initMap() {
+  const { Map } = await window.google.maps.importLibrary("maps");
+  const core = await window.google.maps.importLibrary("core");
+  // eslint-disable-next-line
+  LatLng = core.LatLng;
+
+  map = new Map(document.getElementById("map"), {
+    mapId: '589e2a0c6caa913a',
+    zoom: 13,
+    center: foodbankLocation,
+  });
+
+  const { AdvancedMarkerElement } = await window.google.maps.importLibrary("marker");
+
+  const pinElement = document.createElement("i");
+  pinElement.className = "bi-bank foodbank-icon";
+
+  new AdvancedMarkerElement({
+    position: foodbankLocation,
+    map,
+    title: "Renewal Food Bank",
+    content: pinElement,
+  });
+
+  await loadCoordinates();
+  const data = getLocationsForHousehold(allHouseholds);
+
+  const { HeatmapLayer } = await window.google.maps.importLibrary("visualization");
+  heatmap = new HeatmapLayer({
+    data,
+    dissipating: true,
+    radius: 30,
+    map,
+    opacity: 0.8,
+  });
+
+  document
+    .getElementById("toggle-heatmap")
+    .addEventListener("click", toggleHeatmap);
+  document
+    .getElementById("change-gradient")
+    .addEventListener("click", changeGradient);
+  document
+    .getElementById("change-opacity")
+    .addEventListener("click", changeOpacity);
+  document
+    .getElementById("increase-radius")
+    .addEventListener("click", () => changeRadius(5));
+  document
+    .getElementById("decrease-radius")
+    .addEventListener("click", () => changeRadius(-5));
+  document
+    .getElementById("change-dissipating")
+    .addEventListener("click", toggleDissipating);
+  document
+    .getElementById("filter-visited-this-year")
+    .addEventListener("change", visitThisYear)
 }
