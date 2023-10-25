@@ -1,5 +1,5 @@
 import { Button, Col, Modal, Pagination, Row, Spinner } from 'react-bootstrap';
-import { createRef, Component } from 'preact';
+import { Component, createRef } from 'preact';
 import Clients from './Clients.jsx';
 import { DateTime } from 'luxon';
 import Header from './Header.jsx';

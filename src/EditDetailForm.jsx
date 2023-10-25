@@ -337,8 +337,8 @@ class EditDetailForm extends Component {
     const headerInfo = (
       <>
         <h1>
-         <Link to="/">
-            <i className="bi bi-house-door-fill"></i>
+          <Link to="/">
+            <i className="bi bi-house-door-fill" />
           </Link>
           <Link to="/">
             <button className="red-x-button" type="button">X</button>
