@@ -5,12 +5,14 @@ function HeatMapControls({ allHouseholds, mapApi }) {
   const { renderHeatMap } = mapApi;
 
   const [dissipating, setDissipating] = useState(mapApi.state.dissipating);
+  const [opacity, setOpacity] = useState(mapApi.state.opacity);
   const [households, setHouseholds] = useState(allHouseholds);
   const [showPins, setShowPins] = useState(mapApi.state.showPins);
   const [timeLimit, setTimeLimit] = useState(null);
 
   renderHeatMap({
     dissipating,
+    opacity,
     households,
     showPins,
   });
@@ -46,7 +48,7 @@ function HeatMapControls({ allHouseholds, mapApi }) {
       <button id="toggle-pins" onclick={() => setShowPins(!showPins) }>Toggle Pins</button>
       <button id="decrease-radius">Decrease radius</button>
       <button id="increase-radius">Increase radius</button>
-      <button id="change-opacity">Change opacity</button>
+      <button id="change-opacity" onClick={() => setOpacity(1- opacity + 0.2) }>Change opacity</button>
       <button id="change-dissipating" onClick={() => setDissipating(!dissipating) }>Change dissipating</button>
       <label>
         <input type="checkbox" onClick={ toggleVisitedThisYear } />

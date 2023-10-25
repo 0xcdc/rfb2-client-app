@@ -73,12 +73,11 @@ export async function initMap() {
   function renderHeatMap(newState) {
     // fields that have the same name for us and the heatmap we can handle generically
     const diff = (f, o, n) => (o[f] != n[f]);
-    ["dissipating"].map( field => {
+    ["dissipating", "opacity"].map( field => {
       if ( diff(field, oldState, newState) ) {
         heatmap.set(field, newState[field]);
       }
     });
-
     const [showPinsChanged, householdsChanged] = ["showPins", "households"]
       .map( field => diff(field, oldState, newState));
 
