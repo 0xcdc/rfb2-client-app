@@ -6,6 +6,7 @@ function HeatMapControls({ allHouseholds, mapApi }) {
 
   const [dissipating, setDissipating] = useState(mapApi.state.dissipating);
   const [opacity, setOpacity] = useState(mapApi.state.opacity);
+  const [radius, setRadius] = useState(mapApi.state.radius);
   const [households, setHouseholds] = useState(allHouseholds);
   const [showPins, setShowPins] = useState(mapApi.state.showPins);
   const [timeLimit, setTimeLimit] = useState(null);
@@ -13,26 +14,12 @@ function HeatMapControls({ allHouseholds, mapApi }) {
   renderHeatMap({
     dissipating,
     opacity,
+    radius,
     households,
     showPins,
   });
 
   function toggleVisitedThisYear() {
-    // This is my ideas of the visitedThisYear event handler code
-    /*
-       const checkbox = doccument.getElementById("visitedThisYear");
-       const isChecked = checkbox.checked;
-       if(isChecked){
-       const currentYear = new Date().getFullYear();
-       const filteredData = data.filter((visit) => {
-       const visitYear = new Data(visit.date).getFullYear();
-       return visitYear === currentYear;
-       });
-
-       heatmap.setData(filteredData);
-       } else {
-       heatmap.setData(data);
-       }*/
     if (timeLimit) {
       setTimeLimit(null);
       setHouseholds(allHouseholds);
@@ -46,9 +33,9 @@ function HeatMapControls({ allHouseholds, mapApi }) {
   return (
     <div id="floating-panel">
       <button id="toggle-pins" onclick={() => setShowPins(!showPins) }>Toggle Pins</button>
-      <button id="decrease-radius">Decrease radius</button>
-      <button id="increase-radius">Increase radius</button>
-      <button id="change-opacity" onClick={() => setOpacity(1- opacity + 0.2) }>Change opacity</button>
+      <button id="decrease-radius" onClick={() => setRadius(radius - 5) }>Decrease radius</button>
+      <button id="increase-radius" onClick={() => setRadius(radius + 5) }>Increase radius</button>
+      <button id="change-opacity" onClick={() => setOpacity(1- opacity) }>Change opacity</button>
       <button id="change-dissipating" onClick={() => setDissipating(!dissipating) }>Change dissipating</button>
       <label>
         <input type="checkbox" onClick={ toggleVisitedThisYear } />
