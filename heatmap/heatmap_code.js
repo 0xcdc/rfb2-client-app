@@ -1,8 +1,7 @@
-const { Map } = window.libraries.maps;
+const { FeatureType, Map } = window.libraries.maps;
 const { LatLng } = window.libraries.core;
 const { AdvancedMarkerElement } = window.libraries.marker;
 const { HeatmapLayer } = window.libraries.visualization;
-
 const foodbankLocation = {
   lat: 47.627714616397895,
   lng: -122.13934521724865,
@@ -18,6 +17,10 @@ function getLatLngForHouseholds(households) {
 
   return data;
 }
+
+const colors = ["#D741A7", "#006989", "#EE7B30", "#9DACFF", "blue", "red", "green", "yellow"];
+let colorIndex = 0;
+const colorMap = {};
 
 export async function initMap() {
   const map = new Map(document.getElementById("map"), {
@@ -44,6 +47,7 @@ export async function initMap() {
     dissipating: true,
     radius: 30,
     opacity: 0.8,
+    colorCities: false,
   };
 
   const heatmap = new HeatmapLayer({
@@ -78,7 +82,7 @@ export async function initMap() {
         heatmap.set(field, newState[field]);
       }
     });
-    const [showPinsChanged, householdsChanged] = ["showPins", "households"]
+    const [showPinsChanged, householdsChanged, colorCitiesChanged] = ["showPins", "households", "colorCities"]
       .map( field => diff(field, oldState, newState));
 
     // pins and households are co-dependent
@@ -104,6 +108,32 @@ export async function initMap() {
     if ( householdsChanged ) {
       const data = getLatLngForHouseholds(newState.households);
       heatmap.setData(data);
+    }
+
+    if ( colorCitiesChanged ) {
+      const featureLayer = map.getFeatureLayer(FeatureType.LOCALITY);
+      if ( newState.colorCities ) {
+        featureLayer.style = featureStyleFunctionOptions => {
+          if (map.getZoom() < 11) return null;
+
+          const placeFeature = featureStyleFunctionOptions.feature;
+          const { placeId } = placeFeature;
+          if (!colorMap[placeId]) {
+            colorMap[placeId] = colors[colorIndex];
+            colorIndex += 1;
+            colorIndex %= colors.length;
+          }
+
+          const fillColor = colorMap[placeId];
+
+          return {
+            fillColor,
+            fillOpacity: 0.5,
+          };
+        }
+      } else {
+        featureLayer.style = null;
+      }
     }
 
     oldState = newState;
