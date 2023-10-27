@@ -1,11 +1,9 @@
+import { foodbankLocation } from '../src/foodbankLocation';
+
 const { FeatureType, Map } = window.libraries.maps;
 const { LatLng } = window.libraries.core;
 const { AdvancedMarkerElement } = window.libraries.marker;
 const { HeatmapLayer } = window.libraries.visualization;
-const foodbankLocation = {
-  lat: 47.627714616397895,
-  lng: -122.13934521724865,
-};
 
 function getLatLngForHouseholds(households) {
   // coordinates too far away cause it to not work
