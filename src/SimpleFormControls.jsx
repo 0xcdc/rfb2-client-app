@@ -25,14 +25,19 @@ export function SimpleFormGroup(props) {
   );
 }
 
-export const SimpleFormGroupText = forwardRef((props, ref) => {
-  const obj = { ...props.household, ...props.client };
+function getValidationStyle(state) {
   const style = {};
-  if (props.getValidationState(props.group) === 'error') {
+  if (state === 'error') {
     style.boxShadow = '0 0 0 0.2rem red';
-  } else if (props.getValidationState(props.group) === 'success') {
+  } else if (state === 'success') {
     style.boxShadow = '0 0 0 0.2rem green';
   }
+  return style;
+}
+
+export const SimpleFormGroupText = forwardRef((props, ref) => {
+  const obj = { ...props.household, ...props.client };
+  const style = getValidationStyle(props.getValidationState(props.group));
 
   return (
     <SimpleFormGroup {...props}>
@@ -123,12 +128,7 @@ export function SimpleFormGroupRadio(props) {
 export function SimpleFormGroupSelect(props) {
   const obj = { ...props.household, ...props.client };
 
-  const style = {};
-  if (props.getValidationState(props.group) === 'error') {
-    style.color = 'red';
-  } else if (props.getValidationState(props.group) === 'success') {
-    style.color = 'green';
-  }
+  const style = getValidationStyle(props.getValidationState(props.group));
 
   return (
     <SimpleFormGroup {...props}>
@@ -141,16 +141,15 @@ export function SimpleFormGroupSelect(props) {
           props.onChange(obj, props.group, value);
         }}
         value={obj[props.group]}
+        style={style}
       >
         {getSortedChoices(props)
           .map( ({ id, value, display }) => {
-            const isSelected = obj[props.group] === value;
             return (
               <option
                 id={`${props.group}-${value}-${id}`}
                 key={`${props.group}-${value}-${id}`}
                 name={`${props.group}-${id}`}
-                style={isSelected ? style : {}}
                 value={value}
               >
                 {display}
