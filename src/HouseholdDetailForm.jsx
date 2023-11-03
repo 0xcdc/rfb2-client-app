@@ -96,6 +96,15 @@ export default function HouseholdDetailForm(props) {
         props.onChange(props.household, "address1", addressline);
         if (addressline2) props.onChange(props.household, "address2", addressline2);
         props.onChange(props.household, "zip", postcode);
+
+
+        const { location } = place.geometry;
+        const latlng = JSON.stringify({
+          lat: location.lat(),
+          lng: location.lng(),
+        });
+
+        props.onChange(props.household, "latlng", latlng);
       }
     }
 

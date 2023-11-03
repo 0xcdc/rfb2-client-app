@@ -20,7 +20,7 @@
         // Add other bootstrap parameters as needed, using camel case.
       });
 
-      const libraryNames = ['core', 'places'];
+      const libraryNames = ['core', 'places', 'geocoding'];
       const loadedLibraries = await Promise.all(
         libraryNames.map( lib => window.google.maps.importLibrary(lib) )
       );

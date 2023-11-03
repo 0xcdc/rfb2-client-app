@@ -10,7 +10,7 @@ import TrackingObject from './TrackingObject.js';
 import graphQL from './graphQL.js';
 import { withIdleTimer } from 'react-idle-timer';
 
-
+const { Geocoder } = window.libraries.geocoding;
 const IdleTimer = withIdleTimer( () => {});
 
 class EditDetailForm extends Component {
@@ -60,6 +60,7 @@ class EditDetailForm extends Component {
       key: 'household',
       dataReady: false,
       firstSave: true,
+      needGeocode: false,
     };
   }
 
@@ -72,6 +73,7 @@ class EditDetailForm extends Component {
          cityId
          zip
          incomeLevelId
+         latlng
          note
          clients {
            id
@@ -183,7 +185,22 @@ class EditDetailForm extends Component {
 
   handleHouseholdChange(obj, prop, value) {
     this.householdTO.value[prop] = value;
+    // if any of the address fields that affect location have changed then
+    //   we need to recalulate latLng
+    let { needGeocode } = this.state;
+    switch (prop) {
+      case 'latlng':
+        needGeocode = false;
+        break;
+      case 'address1':
+      case 'cityId':
+      case 'zip':
+        needGeocode = true;
+        break;
+    }
+
     this.setState({
+      needGeocode,
       household: { ...this.householdTO.value },
     });
   }
@@ -240,14 +257,72 @@ class EditDetailForm extends Component {
     return Promise.all(clientSaves);
   }
 
+  lookupLocation() {
+    const values = Object.fromEntries(
+      ['address1', 'cityId', 'zip'].map( prop => [
+        prop, this.householdTO.value[prop]
+      ]));
+
+    // no address1, no geocode
+    if ( !values.address1 ) {
+      return Promise.resolve('');
+    }
+
+    if (values.cityId != 0) {
+      const city = this.state.cities.find( city => city.id == values.cityId);
+      values.cityName = city.value;
+    } else {
+      values.cityName = '';
+    }
+
+    const address = `${values.address1} ${values.cityName} ${values.zip}`;
+
+    const request = {
+      address,
+      region: 'US',
+    }
+
+    console.log(`looking up ${address}`);
+    const geocoder = new Geocoder();
+    return geocoder
+      .geocode( request )
+      .then( result => {
+        const { results } = result;
+        const [firstResult] = results;
+
+        if ( firstResult.partial_match ) {
+          console.log('Partial match, ignoring');
+          return '';
+        }
+
+        const { location } = firstResult.geometry;
+        const latlng = JSON.stringify({
+          lat: location.lat(),
+          lng: location.lng(),
+        });
+        return latlng;
+      })
+      .catch( e => {
+        console.log(`geocode failed with ${e}`);
+        return '';
+      });
+  }
+
   saveChanges() {
-    let { key, firstSave } = this.state;
+    let { key, firstSave, needGeocode } = this.state;
     const selectedClientTO = this.clientTOs.find(to => to.value.id === key);
     const isNewClient = this.householdTO.value.id === -1;
 
-    let netOp = null;
+    let netOp = Promise.resolve();
     if (this.householdTO.hasChanges() || isNewClient || firstSave) {
-      netOp = this.householdTO.saveChanges(graphQL, !firstSave);
+      if (needGeocode) {
+        netOp = this.lookupLocation().then( latlng => {
+          this.householdTO.value['latlng'] = latlng;
+        });
+        needGeocode = false;
+      }
+
+      netOp = netOp.then( () => this.householdTO.saveChanges(graphQL, !firstSave));
       firstSave = false;
     } else {
       netOp = Promise.resolve(this.state.household);
@@ -278,6 +353,7 @@ class EditDetailForm extends Component {
           return clientTO.value;
         }),
         firstSave,
+        needGeocode,
       };
 
       this.setState(newState);
