@@ -72,6 +72,7 @@ class EditDetailForm extends Component {
          cityId
          zip
          incomeLevelId
+         latlng
          note
          clients {
            id
