@@ -14,4 +14,19 @@
   right: 10px;
   cursor: pointer;
 }
-
+.add-another-household {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #ff6b6b;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  width: 20xp;
+  height: 20xp;
+  font-size: 15xp;
+  text-align: center;
+  line-height: 1;
+  position: absolute;
+  bottom: 100px;
+  right: 10px;
+  cursor: pointer;

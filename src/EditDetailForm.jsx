@@ -409,6 +409,7 @@ class EditDetailForm extends Component {
     if (!this.state.dataReady) {
       return (<span />);
     }
+    
     const activeKey = this.state.key;
     const headerInfo = (
       <>
@@ -429,6 +430,15 @@ class EditDetailForm extends Component {
           >
             {this.getSaveString()}
           </Button>
+        </div>
+        <div>
+          <Link reloadDocument to="/households/-1">
+          	<button 
+          	  className="add-another-household"
+          	  disabled={!this.canSave()}
+          	  >
+          	  Add Another Household</button>
+          </Link>
         </div>
       </>
     );
