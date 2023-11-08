@@ -24,6 +24,6 @@ export function stubHousehold() {
     incomeLevelId: 0,
     note: '',
     clients: [],
-    latLng: '',
+    latlng: '',
   };
 }
