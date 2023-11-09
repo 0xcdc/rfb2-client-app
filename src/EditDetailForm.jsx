@@ -1,5 +1,4 @@
-import './styles.css';
-import { Button, Col, ListGroup, Row } from 'react-bootstrap';
+import { Button, CloseButton, Col, ListGroup, OverlayTrigger, Row, Tooltip } from 'react-bootstrap';
 import { stubClient, stubHousehold } from './stubs.js';
 
 import ClientDetailForm from './ClientDetailForm.jsx';
@@ -12,6 +11,15 @@ import { withIdleTimer } from 'react-idle-timer';
 
 const { Geocoder } = window.libraries.geocoding;
 const IdleTimer = withIdleTimer( () => {});
+
+function LinkWithDisabled(props) {
+  const { children, ...nonChildren } = props;
+  return props.disabled ?
+    children :
+    <Link {...nonChildren} >
+      { children }
+    </Link>;
+}
 
 class EditDetailForm extends Component {
   static isClientInvalid(key, value) {
@@ -162,6 +170,10 @@ class EditDetailForm extends Component {
 
   canSave() {
     return this.getSaveState() === 'success';
+  }
+
+  canLeave() {
+    return this.getSaveState() === 'secondary';
   }
 
   hasChanges() {
@@ -409,20 +421,23 @@ class EditDetailForm extends Component {
     if (!this.state.dataReady) {
       return (<span />);
     }
-    
+
     const activeKey = this.state.key;
     const headerInfo = (
       <>
-        <h1>
-          <Link to="/">
-            <i className="bi bi-house-door-fill" />
-          </Link>
-          <Link to="/">
-            <button className="red-x-button" type="button">X</button>
-          </Link>
-          <span className='title'>Review Household Information</span>
-        </h1>
+        <Link to="/">
+          <Button>
+            Home <i className="bi bi-house-door-fill" />
+          </Button>
+        </Link>
         <div className='text-end'>
+          <LinkWithDisabled disabled={!this.canLeave()} reloadDocument to="/households/-1">
+            <OverlayTrigger delay={250} placement="auto" overlay={<Tooltip>Add a new Household</Tooltip>}>
+              <Button variant={this.canLeave() ? "primary" : "secondary"}>
+                <i class="bi bi-house-add" />
+              </Button>
+            </OverlayTrigger>
+          </LinkWithDisabled>
           <Button
             variant={this.getSaveState()}
             onClick={this.handleSave}
@@ -430,15 +445,9 @@ class EditDetailForm extends Component {
           >
             {this.getSaveString()}
           </Button>
-        </div>
-        <div>
-          <Link reloadDocument to="/households/-1">
-          	<button 
-          	  className="add-another-household"
-          	  disabled={!this.canSave()}
-          	  >
-          	  Add Another Household</button>
-          </Link>
+          <LinkWithDisabled disabled={!this.canLeave()} to="/">
+            <CloseButton disabled={!this.canLeave()} />
+          </LinkWithDisabled>
         </div>
       </>
     );
@@ -482,7 +491,9 @@ class EditDetailForm extends Component {
             return c.id === -1;
           })}
         >
-          Add a new client  <i className="bi bi-plus-lg" />
+          <OverlayTrigger delay={250} position="auto" overlay={<Tooltip>Add a household member</Tooltip>}>
+            <i class="bi bi-person-plus-fill" />
+          </OverlayTrigger>
         </ListGroup.Item>
       </ListGroup>
     );
