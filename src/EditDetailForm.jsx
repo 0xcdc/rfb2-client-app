@@ -13,10 +13,10 @@ const { Geocoder } = window.libraries.geocoding;
 const IdleTimer = withIdleTimer( () => {});
 
 function LinkWithDisabled(props) {
-  const { children, ...nonChildren } = props;
-  return props.disabled ?
+  const { children, disabled, ...rest } = props;
+  return disabled ?
     children :
-    <Link {...nonChildren} >
+    <Link {...rest} >
       { children }
     </Link>;
 }
