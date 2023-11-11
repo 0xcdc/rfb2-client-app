@@ -7,10 +7,10 @@ import { useEffect, useRef } from 'preact/hooks';
 import { Form } from 'react-bootstrap';
 import { foodbankLocation } from './foodbankLocation.js';
 
-const { Autocomplete } = window.libraries.places;
-const { LatLngBounds } = window.libraries.core;
-
 export default function HouseholdDetailForm(props) {
+  const { Autocomplete } = window.libraries.places;
+  const { LatLngBounds } = window.libraries.core;
+
   const address1 = useRef(null);
 
   useEffect(() => {

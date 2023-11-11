@@ -1,6 +1,10 @@
+import './heatmap_style.css';
+
+import { useEffect, useState } from 'preact/hooks'
 import { DateTime } from 'luxon';
+import graphQL from '../graphQL.js';
+import { initMap } from './heatmap_code.js';
 import { render } from 'preact'
-import { useState } from 'preact/hooks'
 
 function HeatMapControls({ allHouseholds, mapApi }) {
   const { renderHeatMap } = mapApi;
@@ -64,5 +68,35 @@ export function initHeatMap(allHouseholds, mapApi) {
   render(
     <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} />,
     document.getElementById('heatmap-controls')
+  );
+}
+
+export default function HeatMap() {
+  const [mapApi, setMapApi] = useState(null);
+  const [allHouseholds, setAllHouseholds] = useState([]);
+  useEffect( () => {
+    if (allHouseholds.length == 0) {
+      const query = `{households(ids: []) { latlng lastVisit }}`;
+
+      graphQL(query, 'households').then( json => {
+        let { households } = json.data;
+        households = households
+          .filter( ({ latlng }) => latlng != '')
+          .map( ({ lastVisit, latlng }) => ({
+            lastVisit,
+            latlng: JSON.parse(latlng),
+          }));
+        initMap(households).then( mapApi => {
+          setAllHouseholds(households);
+          setMapApi(mapApi);
+        });
+      });
+    }
+  });
+  return (
+    <>
+      { mapApi && <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} /> }
+      <div id="map" />
+    </>
   );
 }

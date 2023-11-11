@@ -9,7 +9,6 @@ import TrackingObject from './TrackingObject.js';
 import graphQL from './graphQL.js';
 import { withIdleTimer } from 'react-idle-timer';
 
-const { Geocoder } = window.libraries.geocoding;
 const IdleTimer = withIdleTimer( () => {});
 
 function LinkWithDisabled(props) {
@@ -295,6 +294,7 @@ class EditDetailForm extends Component {
     }
 
     console.log(`looking up ${address}`);
+    const { Geocoder } = window.libraries.geocoding;
     const geocoder = new Geocoder();
     return geocoder
       .geocode( request )

@@ -10,7 +10,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        heatmap: resolve(__dirname, 'heatmap/heatmap.html'),
       },
       /**
        * Ignore "use client" waning since we are not using SSR

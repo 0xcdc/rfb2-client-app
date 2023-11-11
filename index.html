@@ -8,6 +8,7 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <script type="module">
+      import renderApp from './src/main.jsx';
       import graphQL from "./src/graphQL.js";
 
       const { data } = await graphQL(`{credentials { googleMapsApiKey }}`);
@@ -20,14 +21,14 @@
         // Add other bootstrap parameters as needed, using camel case.
       });
 
-      const libraryNames = ['core', 'places', 'geocoding'];
+      const libraryNames = ['core', 'geocoding', 'maps', 'marker', 'places', 'visualization'];
       const loadedLibraries = await Promise.all(
         libraryNames.map( lib => window.google.maps.importLibrary(lib) )
       );
 
       window.libraries = Object.fromEntries(libraryNames.map( (name, index) => [name, loadedLibraries[index]]));
+      renderApp();
     </script>
     <div id="app"></div>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

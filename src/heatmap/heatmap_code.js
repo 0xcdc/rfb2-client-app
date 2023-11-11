@@ -1,11 +1,8 @@
-import { foodbankLocation } from '../src/foodbankLocation';
-
-const { FeatureType, Map } = window.libraries.maps;
-const { LatLng } = window.libraries.core;
-const { AdvancedMarkerElement } = window.libraries.marker;
-const { HeatmapLayer } = window.libraries.visualization;
+import { foodbankLocation } from '../foodbankLocation';
 
 function getLatLngForHouseholds(households) {
+  const { LatLng } = window.libraries.core;
+
   // coordinates too far away cause it to not work
   const data = households
     .map( ({ latlng }) => latlng)
@@ -21,6 +18,7 @@ let colorIndex = 0;
 const colorMap = {};
 
 export async function initMap() {
+  const { Map } = window.libraries.maps;
   const map = new Map(document.getElementById("map"), {
     mapId: '589e2a0c6caa913a',
     zoom: 13,
@@ -30,6 +28,7 @@ export async function initMap() {
   const pinElement = document.createElement("i");
   pinElement.className = "bi-bank foodbank-icon";
 
+  const { AdvancedMarkerElement } = window.libraries.marker;
   new AdvancedMarkerElement({
     position: foodbankLocation,
     map,
@@ -48,6 +47,7 @@ export async function initMap() {
     colorCities: false,
   };
 
+  const { HeatmapLayer } = window.libraries.visualization;
   const heatmap = new HeatmapLayer({
     data: oldState.households,
     map,
@@ -109,6 +109,7 @@ export async function initMap() {
     }
 
     if ( colorCitiesChanged ) {
+      const { FeatureType } = window.libraries.maps;
       const featureLayer = map.getFeatureLayer(FeatureType.LOCALITY);
       if ( newState.colorCities ) {
         featureLayer.style = featureStyleFunctionOptions => {
