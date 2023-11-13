@@ -6,7 +6,7 @@ import graphQL from '../graphQL.js';
 import { initMap } from './heatmap_code.js';
 import { render } from 'preact'
 
-function HeatMapControls({ allHouseholds, mapApi }) {
+function HeatMapControls({ allHouseholds, mapApi, cityCounts }) {
   const { renderHeatMap } = mapApi;
 
   function getSelectedHouseholds(timeLimit) {
@@ -29,6 +29,15 @@ function HeatMapControls({ allHouseholds, mapApi }) {
   const [showPins, setShowPins] = useState(mapApi.state.showPins);
   const [timeLimit, setTimeLimit] = useState("year");
 
+
+  const [showMessage, setShowMessage] = useState(false);
+  const [summarizeDataMessage, setSummarizeDataMessage] = useState('');
+  const handleSummarizeDataClick = () => {
+    const summarizeDataMessage = JSON.stringify(cityCounts, null, 2)
+      .replace(/[{}]/g, '');
+    setSummarizeDataMessage(summarizeDataMessage);
+    setShowMessage(!showMessage);
+  }
   renderHeatMap({
     dissipating,
     opacity,
@@ -61,6 +70,16 @@ function HeatMapControls({ allHouseholds, mapApi }) {
           <option value="all">All Time</option>
         </select>
       </label>
+      <button
+        variant="danger"
+        onClick={handleSummarizeDataClick}
+      >Summarize Data
+      </button>
+      {showMessage && (
+        <div className="message-box">
+          {summarizeDataMessage}
+        </div>
+      )}
     </div>);
 }
 
@@ -74,28 +93,41 @@ export function initHeatMap(allHouseholds, mapApi) {
 export default function HeatMap() {
   const [mapApi, setMapApi] = useState(null);
   const [allHouseholds, setAllHouseholds] = useState([]);
+  const [cityCounts, setCityCounts] = useState({});
   useEffect( () => {
     if (allHouseholds.length == 0) {
-      const query = `{households(ids: []) { latlng lastVisit }}`;
+      const query = `{households(ids: []) { latlng lastVisit city{name} }}`;
 
       graphQL(query, 'households').then( json => {
         let { households } = json.data;
         households = households
           .filter( ({ latlng }) => latlng != '')
-          .map( ({ lastVisit, latlng }) => ({
+          .map( ({ lastVisit, latlng, city }) => ({
             lastVisit,
             latlng: JSON.parse(latlng),
+            city,
           }));
         initMap(households).then( mapApi => {
           setAllHouseholds(households);
           setMapApi(mapApi);
+          // calculate the cityCount
+          const cityCounts = {};
+          households.forEach(({ city }) => {
+            if (city && city.name) {
+              cityCounts[city.name] = (cityCounts[city.name] || 0) + 1;
+            } else {
+              const unknownCity = "unknown";
+              cityCounts[unknownCity] = (cityCounts[unknownCity] || 0 ) + 1;
+            }
+          });
+          setCityCounts(cityCounts);
         });
       });
     }
-  });
+  }, [allHouseholds]);
   return (
     <>
-      { mapApi && <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} /> }
+      { mapApi && <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} cityCounts={cityCounts} /> }
       <div id="map" />
     </>
   );
