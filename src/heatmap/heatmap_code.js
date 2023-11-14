@@ -1,4 +1,4 @@
-import { foodbankLocation } from '../foodbankLocation';
+import { foodbankLocation, bellevueLocation, redmondLocation } from '../foodbankLocation';
 
 function getLatLngForHouseholds(households) {
   const { LatLng } = window.libraries.core;
@@ -18,17 +18,22 @@ let colorIndex = 0;
 const colorMap = {};
 
 export async function initMap() {
-  const { Map } = window.libraries.maps;
+  //const { Map, InfoWindow } = window.libraries.maps;
+  //const { PinElement } = window.libraries.marker;
+  const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary(
+    "marker",
+  );
   const map = new Map(document.getElementById("map"), {
     mapId: '589e2a0c6caa913a',
     zoom: 13,
     center: foodbankLocation,
   });
-
+  
   const pinElement = document.createElement("i");
   pinElement.className = "bi-bank foodbank-icon";
-
-  const { AdvancedMarkerElement } = window.libraries.marker;
+  
+ // const { AdvancedMarkerElement } = window.libraries.marker;
   new AdvancedMarkerElement({
     position: foodbankLocation,
     map,
@@ -36,7 +41,38 @@ export async function initMap() {
     content: pinElement,
   });
 
-
+  const cityCenter = [
+  {
+    position: bellevueLocation,
+    title: "Bellevue Center",
+  },
+  {
+    position: redmondLocation,
+    title: "Redmond Center",
+  },
+  ];
+  const infoWindow = new InfoWindow();
+  cityCenter.forEach(({ position, title }, i ) => {
+  
+     const pinElement = document.createElement("i");
+     pinElement.className = "bi bi-person-arms-up";
+     pinElement.style.fontSize = "35px";
+    const marker = new AdvancedMarkerElement({
+      position,
+      map,
+      title: `${title}`,
+      content: pinElement,
+    
+    });
+    marker.addListener("click", ({ domEvent, latLng }) => {
+      const { target } = domEvent;
+      infoWindow.close();
+     
+      const content = `${title}: 0`;
+      infoWindow.setContent(content);
+      infoWindow.open(marker.map, marker);
+    });
+    });
   let oldState = {
     pins: [],
     households: [],

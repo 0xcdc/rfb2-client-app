@@ -93,34 +93,44 @@ export function initHeatMap(allHouseholds, mapApi) {
 export default function HeatMap() {
   const [mapApi, setMapApi] = useState(null);
   const [allHouseholds, setAllHouseholds] = useState([]);
-  const [cityCounts, setCityCounts] = useState({});
+  const [cityCounts, setCityCounts] = useState({}); 
+
   useEffect( () => {
     if (allHouseholds.length == 0) {
-      const query = `{households(ids: []) { latlng lastVisit city{name} }}`;
+      const query = `{households(ids: []) { latlng lastVisit address1 city{name} }}`;
 
       graphQL(query, 'households').then( json => {
         let { households } = json.data;
         households = households
-          .filter( ({ latlng }) => latlng != '')
-          .map( ({ lastVisit, latlng, city }) => ({
+          .filter( ({ latlng } ) => latlng != '')
+          .map( ({ lastVisit, latlng, address1, city }) => ({
             lastVisit,
             latlng: JSON.parse(latlng),
+            address1,
             city,
           }));
         initMap(households).then( mapApi => {
           setAllHouseholds(households);
           setMapApi(mapApi);
-          // calculate the cityCount
-          const cityCounts = {};
-          households.forEach(({ city }) => {
-            if (city && city.name) {
-              cityCounts[city.name] = (cityCounts[city.name] || 0) + 1;
-            } else {
-              const unknownCity = "unknown";
-              cityCounts[unknownCity] = (cityCounts[unknownCity] || 0 ) + 1;
-            }
-          });
-          setCityCounts(cityCounts);
+          const peopleWithNoAddress = households
+            .filter( ({ address1 } ) => address1 == '')
+            .map( ({ address1, city }) => ({
+              address1,
+              city,
+            }));
+          if (peopleWithNoAddress.length === 0) {
+            households.forEach(({ city }) => {
+              const cityName = city.name || 'Unknown';
+              cityCounts[cityName] = 0;
+            });
+            setCityCounts(cityCounts);
+          } else {
+            peopleWithNoAddress.forEach(({ city }) => {
+              const cityName = city && city.name ? city.name : "Unknown";
+              cityCounts[cityName] = (cityCounts[cityName] || 0) + 1;
+            });
+            setCityCounts(cityCounts);
+          }
         });
       });
     }
