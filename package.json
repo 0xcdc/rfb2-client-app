@@ -7,7 +7,7 @@
     "start": "vite",
     "dev": "vite",
     "deploy": "vite build; rm -rf ../rfb2-server/build;cp -r dist ../rfb2-server/build",
-    "eslint": "eslint --ext .jsx --ext .js src",
+    "eslint": "eslint src --ext .jsx,.js",
     "build": "vite build",
     "preview": "vite preview"
   },
