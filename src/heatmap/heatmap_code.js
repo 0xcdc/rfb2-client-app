@@ -1,5 +1,5 @@
 import { bellevueLocation, foodbankLocation, redmondLocation } from '../foodbankLocation';
-
+import graphQL from '../graphQL.js';
 function getLatLngForHouseholds(households) {
   const { LatLng } = window.libraries.core;
 
@@ -26,8 +26,26 @@ export async function initMap() {
     zoom: 13,
     center: foodbankLocation,
   });
-
-  const cityCenter = [
+ const cityCenter = [
+      {
+      position: foodbankLocation,
+      title: "Unknown",
+      }
+      ];
+     
+  const query = `{ cities { latlng name } }`;
+  graphQL(query, 'cities').then( json => {
+        let { cities } = json.data;
+        console.log(cities);
+        cityCenter.push(...cities
+          .map( ({ latlng, name }) => ({
+            position: latlng ? JSON.parse(latlng) : '',
+            title: name,
+          })));
+          
+          });
+          console.log("city Center", cityCenter);
+  /*const cityCenter = [
     {
       position: foodbankLocation,
       title: 'Unknown',
@@ -41,6 +59,7 @@ export async function initMap() {
       title: "Redmond",
     },
   ];
+  */
   let oldState = {
     pins: [],
     noAddressPins: [],
@@ -148,13 +167,15 @@ export async function initMap() {
       oldState.noAddressPins.map( p => p.map = null);
       // create the new pins
       newState.noAddressPins = cityCenter.map(({ position, title }) => {
+      console.log("Processing element:", title);
         const icon = title == "Unknown" ? 'bi-bank' : 'bi-person-arms-up';
-
+	console.log("icon =", icon);
         const pinElement = document.createElement("i");
         pinElement.className = `bi ${icon} foodbank-icon`;
+        console.log("pin element = ", pinElement);
         const count = newState.cityCounts[title] ?? 0;
         pinElement.innerText = count;
-
+        console.log("count element  ", count);
         const marker = new AdvancedMarkerElement({
           position,
           map,
