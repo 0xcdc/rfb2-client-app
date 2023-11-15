@@ -6,38 +6,49 @@ import graphQL from '../graphQL.js';
 import { initMap } from './heatmap_code.js';
 import { render } from 'preact'
 
-function HeatMapControls({ allHouseholds, mapApi, cityCounts }) {
+function HeatMapControls({ allHouseholds, mapApi }) {
   const { renderHeatMap } = mapApi;
 
   function getSelectedHouseholds(timeLimit) {
-    if (timeLimit === "all") {
-      return allHouseholds;
+    let households = allHouseholds;
+    if (timeLimit !== "all") {
+      const now = DateTime.now();
+      const delta = {};
+      delta[timeLimit] = 1;
+      const startDate = now.minus(delta);
+      households = households.filter(h => h.lastVisit >= startDate.toISODate());
     }
 
-    const now = DateTime.now();
-    const delta = {};
-    delta[timeLimit] = 1;
-    const startDate = now.minus(delta);
-    return allHouseholds.filter(h => h.lastVisit >= startDate.toISODate());
+    // divide households into those with a latlng / address and those missing a latlng/address
+    const noAddress = households.filter(({ address1, latlng }) => address1 == '' || latlng == '');
+    households = households.filter( ({ address1, latlng }) => address1 != '' && latlng != '');
+
+    // group the noAddress households by city and count them
+    const cityCounts = {};
+    noAddress.forEach(({ city }) => {
+      if (city && city.name) {
+        cityCounts[city.name] = (cityCounts[city.name] || 0) + 1;
+      } else {
+        const unknownCity = "Unknown";
+        cityCounts[unknownCity] = (cityCounts[unknownCity] || 0 ) + 1;
+      }
+    });
+
+    return { households, cityCounts };
   }
+
+  const defaultTimeLimit = 'year';
+  const { households: defaultHouseholds, cityCounts: defaultCityCounts } = getSelectedHouseholds(defaultTimeLimit)
 
   const [colorCities, setColorCities] = useState(mapApi.state.colorCities);
   const [dissipating, setDissipating] = useState(mapApi.state.dissipating);
-  const [households, setHouseholds] = useState(getSelectedHouseholds("year"));
+  const [households, setHouseholds] = useState(defaultHouseholds);
   const [opacity, setOpacity] = useState(mapApi.state.opacity);
   const [radius, setRadius] = useState(mapApi.state.radius);
   const [showPins, setShowPins] = useState(mapApi.state.showPins);
-  const [timeLimit, setTimeLimit] = useState("year");
+  const [timeLimit, setTimeLimit] = useState(defaultTimeLimit);
+  const [cityCounts, setCityCounts] = useState(defaultCityCounts);
 
-
-  const [showMessage, setShowMessage] = useState(false);
-  const [summarizeDataMessage, setSummarizeDataMessage] = useState('');
-  const handleSummarizeDataClick = () => {
-    const summarizeDataMessage = JSON.stringify(cityCounts, null, 2)
-      .replace(/[{}]/g, '');
-    setSummarizeDataMessage(summarizeDataMessage);
-    setShowMessage(!showMessage);
-  }
   renderHeatMap({
     dissipating,
     opacity,
@@ -45,6 +56,7 @@ function HeatMapControls({ allHouseholds, mapApi, cityCounts }) {
     households,
     showPins,
     colorCities,
+    cityCounts,
   });
 
   return (
@@ -60,7 +72,9 @@ function HeatMapControls({ allHouseholds, mapApi, cityCounts }) {
         <select id="timeLimitSelect"
           onChange={e => {
             setTimeLimit(e.target.value);
-            setHouseholds(getSelectedHouseholds(e.target.value));
+            const { households, cityCounts } = getSelectedHouseholds(e.target.value);
+            setHouseholds(households);
+            setCityCounts(cityCounts);
           }}
           value={timeLimit}>
           <option value="week">Last Week</option>
@@ -70,16 +84,6 @@ function HeatMapControls({ allHouseholds, mapApi, cityCounts }) {
           <option value="all">All Time</option>
         </select>
       </label>
-      <button
-        variant="danger"
-        onClick={handleSummarizeDataClick}
-      >Summarize Data
-      </button>
-      {showMessage && (
-        <div className="message-box">
-          {summarizeDataMessage}
-        </div>
-      )}
     </div>);
 }
 
@@ -93,7 +97,6 @@ export function initHeatMap(allHouseholds, mapApi) {
 export default function HeatMap() {
   const [mapApi, setMapApi] = useState(null);
   const [allHouseholds, setAllHouseholds] = useState([]);
-  const [cityCounts, setCityCounts] = useState({}); 
 
   useEffect( () => {
     if (allHouseholds.length == 0) {
@@ -102,42 +105,22 @@ export default function HeatMap() {
       graphQL(query, 'households').then( json => {
         let { households } = json.data;
         households = households
-          .filter( ({ latlng } ) => latlng != '')
           .map( ({ lastVisit, latlng, address1, city }) => ({
             lastVisit,
-            latlng: JSON.parse(latlng),
+            latlng: latlng ? JSON.parse(latlng) : '',
             address1,
             city,
           }));
-        initMap(households).then( mapApi => {
+        initMap().then( mapApi => {
           setAllHouseholds(households);
           setMapApi(mapApi);
-          const peopleWithNoAddress = households
-            .filter( ({ address1 } ) => address1 == '')
-            .map( ({ address1, city }) => ({
-              address1,
-              city,
-            }));
-          if (peopleWithNoAddress.length === 0) {
-            households.forEach(({ city }) => {
-              const cityName = city.name || 'Unknown';
-              cityCounts[cityName] = 0;
-            });
-            setCityCounts(cityCounts);
-          } else {
-            peopleWithNoAddress.forEach(({ city }) => {
-              const cityName = city && city.name ? city.name : "Unknown";
-              cityCounts[cityName] = (cityCounts[cityName] || 0) + 1;
-            });
-            setCityCounts(cityCounts);
-          }
         });
       });
     }
-  }, [allHouseholds]);
+  });
   return (
     <>
-      { mapApi && <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} cityCounts={cityCounts} /> }
+      { mapApi && <HeatMapControls allHouseholds={allHouseholds} mapApi={mapApi} /> }
       <div id="map" />
     </>
   );

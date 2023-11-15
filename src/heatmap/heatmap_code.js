@@ -1,4 +1,4 @@
-import { foodbankLocation, bellevueLocation, redmondLocation } from '../foodbankLocation';
+import { bellevueLocation, foodbankLocation, redmondLocation } from '../foodbankLocation';
 
 function getLatLngForHouseholds(households) {
   const { LatLng } = window.libraries.core;
@@ -18,69 +18,40 @@ let colorIndex = 0;
 const colorMap = {};
 
 export async function initMap() {
-  //const { Map, InfoWindow } = window.libraries.maps;
-  //const { PinElement } = window.libraries.marker;
-  const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary(
-    "marker",
-  );
+  const { Map } = window.libraries.maps;
+  const { AdvancedMarkerElement } = window.libraries.marker;
+
   const map = new Map(document.getElementById("map"), {
     mapId: '589e2a0c6caa913a',
     zoom: 13,
     center: foodbankLocation,
   });
-  
-  const pinElement = document.createElement("i");
-  pinElement.className = "bi-bank foodbank-icon";
-  
- // const { AdvancedMarkerElement } = window.libraries.marker;
-  new AdvancedMarkerElement({
-    position: foodbankLocation,
-    map,
-    title: "Renewal Food Bank",
-    content: pinElement,
-  });
 
   const cityCenter = [
-  {
-    position: bellevueLocation,
-    title: "Bellevue Center",
-  },
-  {
-    position: redmondLocation,
-    title: "Redmond Center",
-  },
+    {
+      position: foodbankLocation,
+      title: 'Unknown',
+    },
+    {
+      position: bellevueLocation,
+      title: "Bellevue",
+    },
+    {
+      position: redmondLocation,
+      title: "Redmond",
+    },
   ];
-  const infoWindow = new InfoWindow();
-  cityCenter.forEach(({ position, title }, i ) => {
-  
-     const pinElement = document.createElement("i");
-     pinElement.className = "bi bi-person-arms-up";
-     pinElement.style.fontSize = "35px";
-    const marker = new AdvancedMarkerElement({
-      position,
-      map,
-      title: `${title}`,
-      content: pinElement,
-    
-    });
-    marker.addListener("click", ({ domEvent, latLng }) => {
-      const { target } = domEvent;
-      infoWindow.close();
-     
-      const content = `${title}: 0`;
-      infoWindow.setContent(content);
-      infoWindow.open(marker.map, marker);
-    });
-    });
   let oldState = {
     pins: [],
+    noAddressPins: [],
     households: [],
     showPins: false,
     dissipating: true,
     radius: 30,
     opacity: 0.8,
     colorCities: false,
+    cityCounts: {},
+    noAddressActualPins: {},
   };
 
   const { HeatmapLayer } = window.libraries.visualization;
@@ -116,8 +87,9 @@ export async function initMap() {
         heatmap.set(field, newState[field]);
       }
     });
-    const [showPinsChanged, householdsChanged, colorCitiesChanged] = ["showPins", "households", "colorCities"]
-      .map( field => diff(field, oldState, newState));
+    const [showPinsChanged, householdsChanged, colorCitiesChanged, cityCountsChanged] =
+      ["showPins", "households", "colorCities", "cityCounts"]
+        .map( field => diff(field, oldState, newState));
 
     // pins and households are co-dependent
     if ( showPinsChanged || householdsChanged ) {
@@ -171,19 +143,34 @@ export async function initMap() {
       }
     }
 
+    if (cityCountsChanged) {
+      // clear out the old pins (if any)
+      oldState.noAddressPins.map( p => p.map = null);
+      // create the new pins
+      newState.noAddressPins = cityCenter.map(({ position, title }) => {
+        const icon = title == "Unknown" ? 'bi-bank' : 'bi-person-arms-up';
+
+        const pinElement = document.createElement("i");
+        pinElement.className = `bi ${icon} foodbank-icon`;
+        const count = newState.cityCounts[title] ?? 0;
+        pinElement.innerText = count;
+
+        const marker = new AdvancedMarkerElement({
+          position,
+          map,
+          title: `There are ${count} people with no address and a city of ${title}`,
+          content: pinElement,
+        });
+
+        return marker;
+      });
+    } else {
+      // carry the internal state forward
+      newState.noAddressPins = oldState.noAddressPins;
+    }
+
     oldState = newState;
   }
 
-  /*
-  document
-    .getElementById("change-opacity")
-    .addEventListener("click", changeOpacity);
-  document
-    .getElementById("increase-radius")
-    .addEventListener("click", () => changeRadius(+5));
-  document
-    .getElementById("decrease-radius")
-    .addEventListener("click", () => changeRadius(-5));
-  */
   return { renderHeatMap, state: oldState };
 }

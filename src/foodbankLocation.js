@@ -9,7 +9,7 @@ export const bellevueLocation = {
 };
 
 export const redmondLocation = {
-  lat:  47.673988,
+  lat: 47.673988,
   lng: -122.121513,
 };
 
