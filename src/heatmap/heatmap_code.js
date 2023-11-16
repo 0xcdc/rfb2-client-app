@@ -18,6 +18,23 @@ const colors = ["#D741A7", "#006989", "#EE7B30", "#9DACFF", "blue", "red", "gree
 let colorIndex = 0;
 const colorMap = {};
 
+async function getCityCenter() {
+  const query = `{ cities { latlng name } }`;
+  const json = await graphQL(query, 'cities');
+  const { cities } = json.data;
+  const cityCenter = [
+    {
+      position: foodbankLocation,
+      title: "Unknown",
+    },
+    ...cities.map(({ latlng, name }) => ({
+      position: latlng ? JSON.parse(latlng) : '',
+      title: name,
+    })),
+  ];
+  return cityCenter;
+}
+
 export async function initMap() {
   const { Map } = window.libraries.maps;
   const { AdvancedMarkerElement } = window.libraries.marker;
@@ -27,25 +44,7 @@ export async function initMap() {
     zoom: 13,
     center: foodbankLocation,
   });
-  const cityCenter = [
-    {
-      position: foodbankLocation,
-      title: "Unknown",
-    }
-  ];
-
-  const query = `{ cities { latlng name } }`;
-  graphQL(query, 'cities').then( json => {
-    const { cities } = json.data;
-    console.log(cities);
-    cityCenter.push(...cities
-      .map( ({ latlng, name }) => ({
-        position: latlng ? JSON.parse(latlng) : '',
-        title: name,
-      })));
-  });
-  console.log("city Center", cityCenter);
-
+  const cityCenter = await getCityCenter();
   let oldState = {
     pins: [],
     noAddressPins: [],
