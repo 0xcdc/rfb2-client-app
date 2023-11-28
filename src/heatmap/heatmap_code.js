@@ -47,7 +47,7 @@ export async function initMap() {
   const cityCenter = await getCityCenter();
   let oldState = {
     pins: [],
-    noAddressPins: [],
+    cityPins: [],
     households: [],
     showPins: false,
     dissipating: true,
@@ -149,18 +149,20 @@ export async function initMap() {
 
     if (cityCountsChanged) {
       // clear out the old pins (if any)
-      oldState.noAddressPins.map( p => p.map = null);
+      oldState.cityPins.map( p => p.map = null);
       // create the new pins
-      newState.noAddressPins = cityCenter.map(({ position, title }) => {
+      newState.cityPins = cityCenter.map(({ position, title }) => {
         const icon = title == "Unknown" ? 'bi-bank' : 'bi-person-arms-up';
         const pinElement = document.createElement("i");
         pinElement.className = `bi ${icon} foodbank-icon`;
-        const count = newState.cityCounts[title] ?? 0;
-        pinElement.innerText = count;
+        const cityCount = newState.cityCounts[title] ?? { noAddress: 0, hasAddress: 0 };
+        pinElement.innerText = `${(cityCount.hasAddress)} (+${cityCount.noAddress})`;
         const marker = new AdvancedMarkerElement({
           position,
           map,
-          title: `There are ${count} people with no address and a city of ${title}`,
+          title:
+`There are ${cityCount.hasAddress} households with an address and a city of ${title}
+There are ${cityCount.noAddress} households with no address and a city of ${title}`,
           content: pinElement,
         });
 
@@ -168,7 +170,7 @@ export async function initMap() {
       });
     } else {
       // carry the internal state forward
-      newState.noAddressPins = oldState.noAddressPins;
+      newState.cityPins = oldState.cityPins;
     }
 
     oldState = newState;

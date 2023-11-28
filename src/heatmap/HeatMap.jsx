@@ -23,15 +23,20 @@ function HeatMapControls({ allHouseholds, mapApi }) {
     const noAddress = households.filter(({ address1, latlng }) => address1 == '' || latlng == '');
     households = households.filter( ({ address1, latlng }) => address1 != '' && latlng != '');
 
+    const data = { noAddress, hasAddress: households };
     // group the noAddress households by city and count them
     const cityCounts = {};
-    noAddress.forEach(({ city }) => {
-      if (city && city.name) {
-        cityCounts[city.name] = (cityCounts[city.name] || 0) + 1;
-      } else {
-        const unknownCity = "Unknown";
-        cityCounts[unknownCity] = (cityCounts[unknownCity] || 0 ) + 1;
-      }
+    ["noAddress", "hasAddress"].forEach( d => {
+      data[d].forEach(({ city }) => {
+        if (city && city.name) {
+          cityCounts[city.name] ??= { noAddress: 0, hasAddress: 0 };
+          cityCounts[city.name][d] = (cityCounts[city.name][d] || 0) + 1;
+        } else {
+          const unknownCity = "Unknown";
+          cityCounts[unknownCity] ??= { noAddress: 0, hasAddress: 0 };
+          cityCounts[unknownCity][d] = (cityCounts[unknownCity][d] || 0 ) + 1;
+        }
+      })
     });
 
     return { households, cityCounts };
