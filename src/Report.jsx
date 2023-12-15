@@ -1,18 +1,7 @@
 import { Button, Card, Col, Form, Row, Table } from 'react-bootstrap';
+import { DateTime, Duration } from 'luxon';
 import { Component } from 'preact';
-import { DateTime } from 'luxon';
 import graphQL from './graphQL.js';
-
-const ageBrackets = [2, 18, 54, 110];
-function ageIndex(age) {
-  // 1 past the ages array is a sentinal for unknown
-  if (!Number.isInteger(age)) return ageBrackets.length;
-  for (let i = 0; i < ageBrackets.length; i += 1) {
-    if (age <= ageBrackets[i]) return i;
-  }
-
-  return ageBrackets.length;
-}
 
 const dataLabels = ['Duplicated', 'Unduplicated', 'Total'];
 const ageLabels = [
@@ -22,22 +11,20 @@ const ageLabels = [
   '55 Plus Years',
   'Unknown Years',
 ];
+const ageFuncs = [
+  v => v.age && v.age <=2,
+  v => v.age > 2 && v.age <= 18,
+  v => v.age > 18 && v.age <= 54,
+  v => v.age > 55,
+  () => true,
+];
+
 const frequencyLabels = ['Month', 'Quarter', 'Annual'];
 const frequencyCounts = {
   Month: 12,
   Quarter: 4,
   Annual: 1,
 };
-
-function addArray(lhs, rhs) {
-  const res = new Array(Math.max(lhs.length, rhs.length)).fill(0);
-  [rhs, lhs].forEach(a => {
-    a.forEach((v, i) => {
-      res[i] += v;
-    });
-  });
-  return res;
-}
 
 function arrayToOptions(arr) {
   return arr.map(v => {
@@ -60,18 +47,6 @@ function getValue(label, values) {
     default:
       throw new Error('unrecognized label');
   }
-}
-
-function joinHouseholdData(householdData, visits) {
-  return visits
-    .map(v => {
-      const h = householdData.get(`${v.householdId}-${v.householdVersion}`);
-
-      return h ? h.ageArray : [];
-    })
-    .reduce((acc, v) => {
-      return addArray(acc, v);
-    }, new Array(ageBrackets.length + 1).fill(0));
 }
 
 function renderValues(values) {
@@ -100,34 +75,6 @@ function renderTable(label, values) {
   );
 }
 
-function sumArray(a) {
-  return a.reduce((acc, v) => {
-    return acc + v;
-  }, 0);
-}
-
-function summarizeHousehold(household) {
-  const clientBirthYears = household.clients.map(c => {
-    return c.birthYear;
-  });
-  const thisYear = DateTime.now().year;
-  const clientAges = clientBirthYears.map(birthYear => {
-    const nBirthYear = Number.parseInt(birthYear, 10);
-    return Number.isInteger(nBirthYear) ? thisYear - nBirthYear : null;
-  });
-
-  const ageArray = new Array(ageBrackets.length + 1).fill(0);
-
-  clientAges.forEach(age => {
-    const index = ageIndex(age);
-    ageArray[index] += 1;
-  });
-
-  const retval = household;
-  retval.ageArray = ageArray;
-  return retval;
-}
-
 class Report extends Component {
   constructor(props) {
     super(props);
@@ -141,7 +88,8 @@ class Report extends Component {
       value: month,
       frequency: 'Month',
       city: 'All',
-      cities: ['All'],
+      cityNames: ['All'],
+      cityLookup: [],
     };
 
     this.refreshData = this.refreshData.bind(this);
@@ -197,130 +145,109 @@ class Report extends Component {
   }
 
   loadCities() {
-    const query = `{cities {name}}`;
+    const query = `{cities {id name}}`;
     graphQL(query).then(json => {
-      let cities = json.data.cities.map(c => c.name);
+      const data = json.data.cities;
+      let cityNames = data.map(c => c.name);
+      cityNames = ['All', 'Bellevue + Unknown'].concat(cityNames);
 
-      cities = ['All', 'Bellevue + Unknown'].concat(cities);
+      const cityLookup = Object.fromEntries(data.map( c => [c.name, c.id]));
+      cityLookup['Unknown'] = 0;
 
-      this.setState({ cities });
+      this.setState({ cityNames, cityLookup });
     });
   }
 
-  loadData(value, year, freq) {
-    const query = [`{firstVisitsForYear(year: ${year}) { householdId, date }}`];
+  async loadData(value, year, freq) {
+    const results = await graphQL(`
+      {clientVisitsForYear(year: ${year}) {cityId date householdId age}}`);
+
+    let { clientVisitsForYear: clientVisits } = results.data;
+
+    const firstVisitAccumulator = (acc, cur) => {
+      if (! acc[cur.householdId]) {
+        acc[cur.householdId] = cur.date;
+      }
+      return acc;
+    };
+
+    // build an object that maps householdId => first date the household visited
+    const firstVisitForHousehold = clientVisits.reduce( firstVisitAccumulator, {} );
+
+    // whacky math to get the first month based on value + frequency
     const freqCount = frequencyCounts[freq];
     const nMonths = 12 / freqCount;
     const firstMonth = (value - 1) * nMonths + 1;
-    for (let i = 0; i < nMonths; i += 1) {
-      query.push(`
-{visitsForMonth(month: ${firstMonth + i}, year: ${year} )
-  { householdId, householdVersion, date }
-}
-`);
+
+    // get the first date (inclusive) & last date (exclusive)
+    let firstDate = DateTime.fromObject({ year, month: firstMonth, day: 1 });
+    const duration = Duration.fromObject(Object.fromEntries( [[freq == "Annual" ? "year" : freq, 1]]));
+    let lastDate = firstDate.plus(duration);
+    [firstDate, lastDate] = [firstDate, lastDate].map( v => v.toISODate());
+
+    // filter the visits down to the selected date range
+    clientVisits = clientVisits.filter( v => (v.date >= firstDate && v.date < lastDate));
+
+    // filter the visits down to the selected cities
+    if (this.state.city !== 'All') {
+      const idsToKeep =
+        (this.state.city === 'Bellevue + Unknown') ?
+          [
+            this.state.cityLookup['Bellevue'],
+            this.state.cityLookup['Unknown'],
+          ] :
+          [this.state.cityLookup[this.state.city]];
+      clientVisits = clientVisits.filter( v => idsToKeep.includes( v.cityId ));
     }
 
-    const dataAvailable = query.map(q => {
-      return graphQL(q);
+    // create a second list of the vist visit for each household ("unduplicated")
+    const unduplicatedVisits = clientVisits.filter( v => v.date == firstVisitForHousehold[v.householdId]);
+
+    // stub out the various age ranges
+    const ageRanges = {};
+    ageLabels.forEach(v => {
+      ageRanges[v] = {
+        total: 0,
+        unduplicated: 0
+      };
     });
-    Promise.all(dataAvailable).then(results => {
-      const firstVisit = new Map(
-        results.shift().data.firstVisitsForYear.map(v => {
-          return [v.householdId, v.date];
-        }),
-      );
-      let visits = results.reduce((acc, cv) => {
-        return acc.concat(cv.data.visitsForMonth);
-      }, []);
-      const uniqueHouseholds = Object.fromEntries(
-        visits.map(v => [`${v.householdId}-${v.householdVersion}`, 1]),
-      );
 
-      const householdQueries = Object.keys(uniqueHouseholds).map(key => {
-        const [id, version] = key.split('-');
-        return `{
-          household(id: ${id}, version: ${version}) {
-            id version city {name} clients { birthYear}
-          }
-        }`;
-      });
 
-      const householdsAvailable = householdQueries.map(q => {
-        return graphQL(q);
-      });
-
-      Promise.all(householdsAvailable).then(values => {
-        let householdData = values.map(result => {
-          const { household } = result.data;
-          return {
-            id: household.id,
-            version: household.version,
-            city: household.city.name,
-            clients: household.clients,
-          };
-        });
-
-        // cut the households down to the specified cities
-        if (this.state.city !== 'All') {
-          const { city } = this.state;
-
-          householdData = householdData.filter(h => {
-            if (city === 'Bellevue + Unknown') {
-              return h.city === 'Bellevue' || h.city === 'Unknown';
+    const individuals = {};
+    const households = { total: {}, unduplicated: {} };
+    {
+      const iterateOver = { unduplicated: unduplicatedVisits, total: clientVisits };
+      Object.entries(iterateOver).forEach( ( [visitLabel, visits] ) => {
+        visits.forEach(visit => {
+          // iterate over the two types of visits and summerize into age ranges
+          ageLabels.some( (label, index) => {
+            if (ageFuncs[index](visit) ) {
+              ageRanges[label][visitLabel] += 1;
+              return true;
             }
-
-            return h.city === city;
           });
-        }
 
-        householdData = new Map(
-          householdData.map(v => {
-            return [`${v.id}-${v.version}`, summarizeHousehold(v)];
-          }),
-        );
-
-        if (this.state.city !== 'All') {
-          // need to filter out the visits to the remaining households
-          visits = visits.filter(v => {
-            return householdData.has(`${v.householdId}-${v.householdVersion}`);
-          });
-        }
-
-        const unduplicatedVisits = visits.filter(v => {
-          return firstVisit.get(v.householdId) === v.date;
+          // store each date / householdId under the label so we can count them later
+          households[visitLabel][`${visit.date} ${visit.householdId}`] = 1;
         });
 
-        const unduplicatedHouseholdData = joinHouseholdData(
-          householdData,
-          unduplicatedVisits,
-        );
-        const allHouseholdData = joinHouseholdData(householdData, visits);
-
-        const unduplicatedIndividuals = sumArray(unduplicatedHouseholdData);
-        const totalIndividuals = sumArray(allHouseholdData);
-
-        const ageRanges = {};
-        ageLabels.forEach((v, i) => {
-          ageRanges[v] = {};
-          ageRanges[v].total = allHouseholdData[i];
-          ageRanges[v].unduplicated = unduplicatedHouseholdData[i];
-        });
-
-        const data = {
-          households: {
-            unduplicated: unduplicatedVisits.length,
-            total: visits.length,
-          },
-          individuals: {
-            unduplicated: unduplicatedIndividuals,
-            total: totalIndividuals,
-          },
-          ageRanges,
-        };
-
-        this.setState({ data });
+        // store the count of individuals under the label
+        individuals[visitLabel] = visits.length;
       });
+    }
+
+    // count the unique date / householdIds
+    Object.keys(households).forEach( k => {
+      households[k] = Object.keys(households[k]).length;
     });
+
+    const data = {
+      households,
+      individuals,
+      ageRanges,
+    };
+
+    this.setState({ data });
   }
 
   refreshData() {
@@ -352,8 +279,6 @@ class Report extends Component {
       });
 
     const frequencies = arrayToOptions(frequencyLabels);
-
-    const cities = arrayToOptions(this.state.cities);
 
     return (
       <div>
@@ -395,7 +320,7 @@ class Report extends Component {
                 value={this.state.city}
                 onChange={this.setCity}
               >
-                {cities}
+                { arrayToOptions(this.state.cityNames) }
               </Form.Select>
               {' '}
             </Col>
