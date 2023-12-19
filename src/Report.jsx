@@ -4,19 +4,13 @@ import { Component } from 'preact';
 import graphQL from './graphQL.js';
 
 const dataLabels = ['Duplicated', 'Unduplicated', 'Total'];
-const ageLabels = [
-  '0-2 Years',
-  '3-18 Years',
-  '19-54 Years',
-  '55 Plus Years',
-  'Unknown Years',
-];
+
 const ageFuncs = [
-  v => v.age && v.age <=2,
-  v => v.age > 2 && v.age <= 18,
-  v => v.age > 18 && v.age <= 54,
-  v => v.age > 55,
-  () => true,
+  ['0-2 Years', v => v.age && v.age <=2],
+  ['3-18 Years', v => v.age > 2 && v.age <= 18],
+  ['19-54 Years', v => v.age > 18 && v.age <= 54],
+  ['55 Plus Years', v => v.age > 55],
+  ['Unknown Years', () => true],
 ];
 
 const frequencyLabels = ['Month', 'Quarter', 'Annual'];
@@ -158,11 +152,11 @@ class Report extends Component {
     });
   }
 
-  async loadData(value, year, freq) {
+  async loadData(year) {
     const results = await graphQL(`
       {clientVisitsForYear(year: ${year}) {cityId date householdId age}}`);
 
-    let { clientVisitsForYear: clientVisits } = results.data;
+    const { clientVisitsForYear: clientVisits } = results.data;
 
     const firstVisitAccumulator = (acc, cur) => {
       if (! acc[cur.householdId]) {
@@ -173,6 +167,18 @@ class Report extends Component {
 
     // build an object that maps householdId => first date the household visited
     const firstVisitForHousehold = clientVisits.reduce( firstVisitAccumulator, {} );
+
+    return [clientVisits, firstVisitForHousehold];
+  }
+
+  dataCache = {};
+
+  async aggregateData(value, year, freq) {
+    if (! this.dataCache[year] ) {
+      this.dataCache[year] = await this.loadData(year);
+    }
+
+    let [clientVisits, firstVisitForHousehold] = this.dataCache[year];
 
     // whacky math to get the first month based on value + frequency
     const freqCount = frequencyCounts[freq];
@@ -205,8 +211,8 @@ class Report extends Component {
 
     // stub out the various age ranges
     const ageRanges = {};
-    ageLabels.forEach(v => {
-      ageRanges[v] = {
+    ageFuncs.forEach( ([label]) => {
+      ageRanges[label] = {
         total: 0,
         unduplicated: 0
       };
@@ -220,8 +226,8 @@ class Report extends Component {
       Object.entries(iterateOver).forEach( ( [visitLabel, visits] ) => {
         visits.forEach(visit => {
           // iterate over the two types of visits and summerize into age ranges
-          ageLabels.some( (label, index) => {
-            if (ageFuncs[index](visit) ) {
+          ageFuncs.some( ( [label, func] ) => {
+            if (func(visit) ) {
               ageRanges[label][visitLabel] += 1;
               return true;
             }
@@ -251,7 +257,7 @@ class Report extends Component {
   }
 
   refreshData() {
-    this.loadData(this.state.value, this.state.year, this.state.frequency);
+    this.aggregateData(this.state.value, this.state.year, this.state.frequency);
   }
 
   render() {
