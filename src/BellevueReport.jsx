@@ -4,34 +4,6 @@ import { DateTime } from 'luxon';
 import graphQL from './graphQL.js';
 
 
-const reportTabs = {
-  Age: null,
-  Counts: null,
-  Disabled: null,
-  'Speaks English': null,
-  Gender: null,
-  Homeless: null,
-  Income: null,
-  'Military Status': null,
-  Race: null,
-  Refugee: null,
-};
-
-const ageBreaks = [0, 6, 13, 18, 25, 35, 55, 75, 85];
-
-function ageFuncBuilder(accumulator, currentValue, currentIndex) {
-  const nextValue = (currentIndex + 1 < ageBreaks.length) ? ageBreaks[currentIndex+1] : -1;
-  if (nextValue == -1) {
-    accumulator.push( [`> ${currentValue}`, v => v.age && v.age >= currentValue]);
-  } else {
-    accumulator.push( [`${currentValue} - ${nextValue-1}`, v => v.age && v.age >= currentValue && v.age < nextValue]);
-  }
-  return accumulator;
-}
-
-const ageFuncs = ageBreaks.reduce( ageFuncBuilder, []);
-ageFuncs.push( ['Unknown', () => true]);
-
 function arrayToOptions(arr) {
   return arr.map(v => {
     return (
@@ -48,10 +20,13 @@ function renderRows(data) {
 }
 
 function renderData(data) {
+  const [headerRow, ...bodyData] = data;
+
   return (
-    <Col xs={6}>
-      <Table bordered size="sm">
-        <tbody>{renderRows(data)}</tbody>
+    <Col xs={10}>
+      <Table bordered striped hover size="sm" >
+        <thead><tr>{headerRow.map( h => (<th key={`th-${h}`}>{h}</th>))}</tr></thead>
+        <tbody>{renderRows(bodyData)}</tbody>
       </Table>
     </Col>
   );
@@ -65,6 +40,7 @@ class BellevueReport extends Component {
       data: null,
       year: now.month == 1 ? now.year -1 : now.year,
       cityData: null,
+      cityLookup: null,
       reportTab: 'Counts',
     };
 
@@ -89,7 +65,8 @@ class BellevueReport extends Component {
     const query = `{cities {id name break_out in_king_county}}`;
     graphQL(query).then(json => {
       const cityData = json.data.cities;
-      this.setState({ cityData });
+      const cityLookup = Object.fromEntries(cityData.map( c => [c.id, c]));
+      this.setState({ cityData, cityLookup });
     });
   }
 
@@ -115,34 +92,90 @@ class BellevueReport extends Component {
     return unduplicatedVisits;
   }
 
-  aggregateCounts(clientVisits) {
-    const data = [['City', 'Unduplicated Individuals']];
+  aggregateByFunction(clientVisits, headers, func) {
+    const rollupKeys = [...this.state.cityData
+      .filter(c => c.break_out)
+      .map(c => c.name),
+    'Other King County',
+    'Outside King County',
+    'Unknown'];
 
-    data.push(...this.state.cityData
-      .filter( c => c.break_out == 1)
-      .map( c => {
-        const count = clientVisits
-          .filter( v => v.cityId == c.id)
-          .length;
-        return [c.name, count];
-      }));
+    // stub out a full grid of key + headers with 0 values
+    const data = Object.fromEntries(
+      rollupKeys.map( rollupKey =>
+        [rollupKey, Object.fromEntries( headers.map( h => [h, 0]))]));
 
-    const otherKC = this.state.cityData
-      .filter( c => c.id != 0 && c.break_out == 0 && c.in_king_county == 1);
-    data.push(['Other King County', clientVisits
-      .filter( v => otherKC.some( c => c.id == v.cityId))
-      .length]);
 
-    const outsideKC = this.state.cityData
-      .filter( c=> c.id != 0 && c.break_out == 0 && c.in_king_county == 0);
-    data.push(['Outside King County', clientVisits
-      .filter( v => outsideKC.some( c => c.id == v.cityId))
-      .length]);
+    clientVisits.forEach( visit => {
+      const city = this.state.cityLookup[visit.cityId];
+      const rollupKey = city.id == 0 ? "Unknown" :
+        city.break_out ? city.name :
+          city.in_king_county ? "Other King County" :
+            "Outside King County";
 
-    data.push(['Unknown City', clientVisits.filter(v => v.cityId == 0).length]);
+      const value = func(visit);
+      Object.keys(value).forEach( valueKey => {
+        data[rollupKey][valueKey] += value[valueKey];
+      });
+    });
 
-    return data;
+    const grid = [['City', ...headers]];
+    rollupKeys.forEach( rollupKey => {
+      const row = [rollupKey];
+      row.push(... headers.map( h => data[rollupKey][h]));
+      grid.push(row);
+    });
+
+    return grid;
   }
+
+  aggregateAges(clientVisits) {
+    const ageBreaks = [0, 6, 13, 18, 25, 35, 55, 75, 85];
+
+    function ageFuncBuilder(accumulator, currentValue, currentIndex) {
+      const nextValue = (currentIndex + 1 < ageBreaks.length) ? ageBreaks[currentIndex+1] : -1;
+      if (nextValue == -1) {
+        accumulator.push( [`> ${currentValue}`, v => v.age && v.age >= currentValue]);
+      } else {
+        accumulator.push(
+          [`${currentValue} - ${nextValue-1}`, v => v.age && v.age >= currentValue && v.age < nextValue]
+        );
+      }
+      return accumulator;
+    }
+
+    const ageFuncs = ageBreaks.reduce( ageFuncBuilder, []);
+    ageFuncs.push( ['Unknown', () => true]);
+
+    const header = ageFuncs.map( f => f[0]);
+    const countAgesFunc = visit => Object.fromEntries([
+      [ageFuncs.find( f => f[1](visit))[0], 1]
+    ]);
+
+    return this.aggregateByFunction(clientVisits, header, countAgesFunc);
+  }
+
+
+  aggregateCounts(clientVisits) {
+    const header= ['Unduplicated Individuals'];
+    const countVisitsFunc = () => ({ 'Unduplicated Individuals': 1 });
+
+    return this.aggregateByFunction(clientVisits, header, countVisitsFunc);
+  }
+
+  reportTabs = {
+    Age: this.aggregateAges.bind(this),
+    Counts: this.aggregateCounts.bind(this),
+    Disabled: null,
+    'Speaks English': null,
+    Gender: null,
+    Homeless: null,
+    Income: null,
+    'Military Status': null,
+    Race: null,
+    Refugee: null,
+  };
+
 
   dataCache = {};
 
@@ -153,8 +186,9 @@ class BellevueReport extends Component {
 
     const unduplicatedVisits = this.dataCache[year];
 
+    const aggFunc = this.reportTabs[this.state.reportTab];
 
-    const data = this.aggregateCounts(unduplicatedVisits);
+    const data = aggFunc(unduplicatedVisits);
 
 
     this.setState({ data });
@@ -177,7 +211,7 @@ class BellevueReport extends Component {
         );
       });
 
-    const tabs = arrayToOptions(Object.keys(reportTabs).sort());
+    const tabs = arrayToOptions(Object.keys(this.reportTabs).sort());
 
     return (
       <div>
