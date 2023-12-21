@@ -13,7 +13,6 @@ const ageFuncs = [
   ['Unknown Years', () => true],
 ];
 
-const frequencyLabels = ['Month', 'Quarter', 'Annual'];
 const frequencyCounts = {
   Month: 12,
   Quarter: 4,
@@ -284,7 +283,7 @@ class Report extends Component {
         );
       });
 
-    const frequencies = arrayToOptions(frequencyLabels);
+    const frequencies = arrayToOptions(Object.keys(frequencyCounts).sort());
 
     return (
       <div>

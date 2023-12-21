@@ -5,6 +5,7 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
 } from 'react-router-dom';
+import BellevueReport from './BellevueReport.jsx';
 import HeatMap from './heatmap/HeatMap.jsx';
 import Home from './Home.jsx';
 import Household from './Household.jsx';
@@ -17,6 +18,7 @@ const router = createBrowserRouter(
       <Route path='/' element={ <Layout ><Outlet /> </Layout> } >
         <Route path='/households/:id' element={ <Household /> } />
         <Route path='report' element={ <Report /> } />
+        <Route path='EOYReport' element={ <BellevueReport /> } />
         <Route path='/' element={ <Home />} />
       </Route>
       <Route path='/heatmap/*' element={ <HeatMap /> } />
