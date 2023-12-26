@@ -51,6 +51,7 @@ class BellevueReport extends Component {
 
   componentDidMount() {
     this.loadCities();
+    this.loadLookups();
   }
 
   setYear(e) {
@@ -70,9 +71,35 @@ class BellevueReport extends Component {
     });
   }
 
+  async loadLookups() {
+    const queries = [
+      'yesNos',
+      'incomeLevels',
+      'genders',
+      'militaryStatuses',
+      'races',
+    ].map( q => `{${q} {id value}}`);
+
+    const requests = queries.map( q => graphQL(q));
+    const results = await Promise.all(requests);
+    results.forEach( r => {
+      const { data } = r;
+      const [name] = Object.keys(data);
+      const valuePairs = data[name];
+      const lookup = Object.fromEntries(valuePairs.map( e => [e.id, e.value]));
+      const labels = name == 'yesNos' ? ['Unknown', 'Yes', 'No'] : valuePairs.map( e => e.value );
+      // move unknown to the end
+      labels.push(labels.shift());
+      const stateToStore = Object.fromEntries([[`${name}Lookup`, lookup], [`${name}Labels`, labels]]);
+      this.setState(stateToStore);
+    });
+  }
+
   async loadData(year) {
     const results = await graphQL(`
-      {clientVisitsForYear(year: ${year}) {cityId date householdId age}}`);
+      {clientVisitsForYear(year: ${year}) {
+        age cityId date disabled genderId householdId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish
+      }}`);
 
     const { clientVisitsForYear: clientVisits } = results.data;
 
@@ -155,7 +182,6 @@ class BellevueReport extends Component {
     return this.aggregateByFunction(clientVisits, header, countAgesFunc);
   }
 
-
   aggregateCounts(clientVisits) {
     const header= ['Unduplicated Individuals'];
     const countVisitsFunc = () => ({ 'Unduplicated Individuals': 1 });
@@ -163,17 +189,23 @@ class BellevueReport extends Component {
     return this.aggregateByFunction(clientVisits, header, countVisitsFunc);
   }
 
+  aggregateLookupTables(option, field, clientVisits) {
+    const countVisitsFunc = visit => Object.fromEntries([[this.state[`${option}Lookup`][visit[field]], 1]]);
+    const header = this.state[`${option}Labels`];
+    return this.aggregateByFunction(clientVisits, header, countVisitsFunc);
+  }
+
   reportTabs = {
     Age: this.aggregateAges.bind(this),
     Counts: this.aggregateCounts.bind(this),
-    Disabled: null,
-    'Speaks English': null,
-    Gender: null,
-    Homeless: null,
-    Income: null,
-    'Military Status': null,
-    Race: null,
-    Refugee: null,
+    Disabled: this.aggregateLookupTables.bind(this, 'yesNos', 'disabled'),
+    'Speaks English': this.aggregateLookupTables.bind(this, 'yesNos', 'speaksEnglish'),
+    Gender: this.aggregateLookupTables.bind(this, 'genders', 'genderId'),
+    Homeless: null, // this.aggregateLookupTables.bind(this, 'yesNos', 'homeless'),
+    Income: null, // this.aggregateLookupTables.bind(this, 'incomeLevels', 'incomeLevelId'),
+    'Military Status': this.aggregateLookupTables.bind(this, 'militaryStatuses', 'militaryStatusId'),
+    Race: this.aggregateLookupTables.bind(this, 'races', 'raceId'),
+    Refugee: this.aggregateLookupTables.bind(this, 'yesNos', 'refugeeImmigrantStatus'),
   };
 
 
