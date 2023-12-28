@@ -3,7 +3,6 @@ import { Component } from 'preact';
 import { DateTime } from 'luxon';
 import graphQL from './graphQL.js';
 
-
 function arrayToOptions(arr) {
   return arr.map(v => {
     return (
@@ -73,11 +72,11 @@ class BellevueReport extends Component {
 
   async loadLookups() {
     const queries = [
-      'yesNos',
-      'incomeLevels',
       'genders',
+      'incomeLevels',
       'militaryStatuses',
       'races',
+      'yesNos',
     ].map( q => `{${q} {id value}}`);
 
     const requests = queries.map( q => graphQL(q));
@@ -96,30 +95,40 @@ class BellevueReport extends Component {
   }
 
   async loadData(year) {
-    const results = await graphQL(`
-      {clientVisitsForYear(year: ${year}) {
-        age cityId date disabled genderId householdId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish
-      }}`);
+    const queries = [
+      `{clientVisitsForYear(year: ${year}) {
+         age cityId date disabled genderId householdId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish
+       }}`,
+      `{householdVisitsForYear(year: ${year}) {
+         cityId date homeless householdId incomeLevelId
+       }}`,
+    ];
 
-    const { clientVisitsForYear: clientVisits } = results.data;
+    const results = await Promise.all(queries.map( q => graphQL(q)));
 
-    const firstVisitAccumulator = (acc, cur) => {
-      if (! acc[cur.householdId]) {
-        acc[cur.householdId] = cur.date;
-      }
-      return acc;
-    };
+    const names = ['clientVisitsForYear', 'householdVisitsForYear'];
+    const [clientVisits, householdVisits] = names.map( (name, i) => {
+      const visits = results[i].data[name];
 
-    // build an object that maps householdId => first date the household visited
-    const firstVisitForHousehold = clientVisits.reduce( firstVisitAccumulator, {} );
+      // build an object that maps householdId => first date the household visited
+      const firstVisitAccumulator = (acc, cur) => {
+        if (! acc[cur.householdId]) {
+          acc[cur.householdId] = cur.date;
+        }
+        return acc;
+      };
+      const firstVisitForHousehold = visits.reduce( firstVisitAccumulator, {} );
 
-    // create a second list of the vist visit for each household ("unduplicated")
-    const unduplicatedVisits = clientVisits.filter( v => v.date == firstVisitForHousehold[v.householdId]);
+      // create a second list of the first visit for each household ("unduplicated")
+      const unduplicatedVisits = visits.filter( v => v.date == firstVisitForHousehold[v.householdId]);
 
-    return unduplicatedVisits;
+      return unduplicatedVisits;
+    });
+
+    return { clientVisits, householdVisits };
   }
 
-  aggregateByFunction(clientVisits, headers, func) {
+  aggregateByFunction(visits, headers, func) {
     const rollupKeys = [...this.state.cityData
       .filter(c => c.break_out)
       .map(c => c.name),
@@ -133,7 +142,7 @@ class BellevueReport extends Component {
         [rollupKey, Object.fromEntries( headers.map( h => [h, 0]))]));
 
 
-    clientVisits.forEach( visit => {
+    visits.forEach( visit => {
       const city = this.state.cityLookup[visit.cityId];
       const rollupKey = city.id == 0 ? "Unknown" :
         city.break_out ? city.name :
@@ -156,7 +165,7 @@ class BellevueReport extends Component {
     return grid;
   }
 
-  aggregateAges(clientVisits) {
+  aggregateAges({ clientVisits }) {
     const ageBreaks = [0, 6, 13, 18, 25, 35, 55, 75, 85];
 
     function ageFuncBuilder(accumulator, currentValue, currentIndex) {
@@ -182,30 +191,41 @@ class BellevueReport extends Component {
     return this.aggregateByFunction(clientVisits, header, countAgesFunc);
   }
 
-  aggregateCounts(clientVisits) {
-    const header= ['Unduplicated Individuals'];
-    const countVisitsFunc = () => ({ 'Unduplicated Individuals': 1 });
+  aggregateCounts( visits ) {
+    const headers = ['Unduplicated Households', 'Unduplicated Individuals'];
+    const input = [visits.householdVisits, visits.clientVisits];
 
-    return this.aggregateByFunction(clientVisits, header, countVisitsFunc);
+    const data = headers.map( (header, index) => {
+      const countVisitsFunc = () => Object.fromEntries([[header, 1]]);
+      return this.aggregateByFunction(input[index], headers, countVisitsFunc);
+    });
+
+    // combine the results into a single returnDataset
+    return data[0].map( (_, rowNum) => {
+      const [city, householdCount] = data[0][rowNum];
+      const [, , clientCount] = data[1][rowNum];
+      return [city, householdCount, clientCount];
+    });
   }
 
-  aggregateLookupTables(option, field, clientVisits) {
+  aggregateLookupTables(option, field, visitTag, visits) {
     const countVisitsFunc = visit => Object.fromEntries([[this.state[`${option}Lookup`][visit[field]], 1]]);
     const header = this.state[`${option}Labels`];
-    return this.aggregateByFunction(clientVisits, header, countVisitsFunc);
+    visits = visits[visitTag];
+    return this.aggregateByFunction(visits, header, countVisitsFunc);
   }
 
   reportTabs = {
     Age: this.aggregateAges.bind(this),
     Counts: this.aggregateCounts.bind(this),
-    Disabled: this.aggregateLookupTables.bind(this, 'yesNos', 'disabled'),
-    'Speaks English': this.aggregateLookupTables.bind(this, 'yesNos', 'speaksEnglish'),
-    Gender: this.aggregateLookupTables.bind(this, 'genders', 'genderId'),
-    Homeless: null, // this.aggregateLookupTables.bind(this, 'yesNos', 'homeless'),
-    Income: null, // this.aggregateLookupTables.bind(this, 'incomeLevels', 'incomeLevelId'),
-    'Military Status': this.aggregateLookupTables.bind(this, 'militaryStatuses', 'militaryStatusId'),
-    Race: this.aggregateLookupTables.bind(this, 'races', 'raceId'),
-    Refugee: this.aggregateLookupTables.bind(this, 'yesNos', 'refugeeImmigrantStatus'),
+    Disabled: this.aggregateLookupTables.bind(this, 'yesNos', 'disabled', 'clientVisits'),
+    'Speaks English': this.aggregateLookupTables.bind(this, 'yesNos', 'speaksEnglish', 'clientVisits'),
+    Gender: this.aggregateLookupTables.bind(this, 'genders', 'genderId', 'clientVisits'),
+    Homeless: this.aggregateLookupTables.bind(this, 'yesNos', 'homeless', 'householdVisits'),
+    Income: this.aggregateLookupTables.bind(this, 'incomeLevels', 'incomeLevelId', 'householdVisits'),
+    'Military Status': this.aggregateLookupTables.bind(this, 'militaryStatuses', 'militaryStatusId', 'clientVisits'),
+    Race: this.aggregateLookupTables.bind(this, 'races', 'raceId', 'clientVisits'),
+    Refugee: this.aggregateLookupTables.bind(this, 'yesNos', 'refugeeImmigrantStatus', 'clientVisits'),
   };
 
 
