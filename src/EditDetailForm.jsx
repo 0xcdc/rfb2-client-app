@@ -55,11 +55,6 @@ class EditDetailForm extends Component {
   constructor(props) {
     super(props);
     this.id = props.id;
-    this.handleClientChange = this.handleClientChange.bind(this);
-    this.handleClientDelete = this.handleClientDelete.bind(this);
-    this.handleHouseholdChange = this.handleHouseholdChange.bind(this);
-    this.handleNewClient = this.handleNewClient.bind(this);
-    this.handleSave = this.handleSave.bind(this);
     this.handleTabSelect = this.handleTabSelect.bind(this);
 
     this.state = {
@@ -181,7 +176,7 @@ class EditDetailForm extends Component {
     });
   }
 
-  handleNewClient() {
+  handleNewClient = () => {
     const newClient = stubClient(this.householdTO.value.id);
     const newTO = EditDetailForm.newClientTO(newClient);
     this.clientTOs.push(newTO);
@@ -194,7 +189,7 @@ class EditDetailForm extends Component {
     });
   }
 
-  handleHouseholdChange(obj, prop, value) {
+  handleHouseholdChange = (obj, prop, value) => {
     this.householdTO.value[prop] = value;
     // if any of the address fields that affect location have changed then
     //   we need to recalulate latLng
@@ -216,7 +211,7 @@ class EditDetailForm extends Component {
     });
   }
 
-  handleClientChange(obj, prop, value) {
+  handleClientChange = (obj, prop, value) => {
     const i = this.clientTOs.findIndex(c => {
       return c.value.id === obj.id;
     });
@@ -230,7 +225,7 @@ class EditDetailForm extends Component {
     });
   }
 
-  handleClientDelete(obj) {
+  handleClientDelete = obj => {
     const i = this.clientTOs.findIndex(c => {
       return c.value.id === obj.id;
     });
@@ -372,14 +367,14 @@ class EditDetailForm extends Component {
     });
   }
 
-  handleSave() {
+  handleSave = () => {
     // set the isSaving flag to true before anything
     if (this.hasChanges() && !this.isFormInvalid()) {
       this.setState({ isSaving: true }, this.saveChanges);
     }
   }
 
-  handleTabSelect(key) {
+  handleTabSelect = key => {
     this.setState({
       key,
     });

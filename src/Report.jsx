@@ -84,23 +84,17 @@ class Report extends Component {
       cityNames: ['All'],
       cityLookup: [],
     };
-
-    this.refreshData = this.refreshData.bind(this);
-    this.setCity = this.setCity.bind(this);
-    this.setFrequency = this.setFrequency.bind(this);
-    this.setValue = this.setValue.bind(this);
-    this.setYear = this.setYear.bind(this);
   }
 
   componentDidMount() {
     this.loadCities();
   }
 
-  setCity(e) {
+  setCity = e => {
     this.setState({ city: e.target.value });
   }
 
-  setFrequency(e) {
+  setFrequency = e => {
     // set the value to be a reasonable default based on the frequency
     const now = DateTime.now();
     const frequency = e.target.value;
@@ -129,11 +123,11 @@ class Report extends Component {
     });
   }
 
-  setValue(e) {
+  setValue = e => {
     this.setState({ value: e.target.value });
   }
 
-  setYear(e) {
+  setYear = e => {
     this.setState({ year: e.target.value });
   }
 
@@ -255,7 +249,7 @@ class Report extends Component {
     this.setState({ data });
   }
 
-  refreshData() {
+  refreshData = () => {
     this.aggregateData(this.state.value, this.state.year, this.state.frequency);
   }
 

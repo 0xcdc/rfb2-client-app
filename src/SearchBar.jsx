@@ -117,16 +117,6 @@ class SearchBar extends Component {
       showModal: false,
       visits: [],
     };
-
-    this.handleClientSelect = this.handleClientSelect.bind(this);
-    this.handleCheckIn = this.handleCheckIn.bind(this);
-    this.handleDeleteVisit = this.handleDeleteVisit.bind(this);
-    this.handleModalOnExited = this.handleModalOnExited.bind(this);
-    this.handleOnKeyDown = this.handleOnKeyDown.bind(this);
-    this.handlePageSelect = this.handlePageSelect.bind(this);
-    this.handleSearchBoxChange = this.handleSearchBoxChange.bind(this);
-
-    this.hideModal = this.hideModal.bind(this);
   }
 
   componentDidMount() {
@@ -231,7 +221,7 @@ class SearchBar extends Component {
     return filteredClients;
   }
 
-  handleCheckIn() {
+  handleCheckIn = () => {
     const { selectedClient } = this.state;
     if (selectedClient && !this.alreadyVisited(selectedClient)) {
       this.setState({ showModal: 'pending' });
@@ -257,7 +247,7 @@ class SearchBar extends Component {
     }
   }
 
-  handleClientSelect(client, index) {
+  handleClientSelect = (client, index) => {
     this.setState(prevState => {
       return normalizeSelection({
         ...prevState,
@@ -266,7 +256,7 @@ class SearchBar extends Component {
     });
   }
 
-  handleDeleteVisit(id) {
+  handleDeleteVisit = id => {
     const query = `mutation{deleteVisit(id:${id}) {id}}`;
     const dataAvailable = graphQL(query);
     dataAvailable.then(() => {
@@ -274,13 +264,13 @@ class SearchBar extends Component {
     });
   }
 
-  handleModalOnExited() {
+  handleModalOnExited = () => {
     const searchBar = this.textInput.current;
     searchBar.focus();
     searchBar.setSelectionRange(0, searchBar.value.length);
   }
 
-  handleOnKeyDown(e) {
+  handleOnKeyDown = e => {
     let indexIncr = 0;
     switch (e.key) {
       case 'ArrowDown':
@@ -301,18 +291,18 @@ class SearchBar extends Component {
     });
   }
 
-  handlePageSelect(pageNumber) {
+  handlePageSelect = pageNumber => {
     this.setState(prevState => {
       return normalizeSelection({ ...prevState, setPage: pageNumber });
     });
   }
 
-  handleSearchBoxChange(e) {
+  handleSearchBoxChange = e => {
     const filter = e.target.value;
     this.setState(this.updateFilteredClients(filter, 0));
   }
 
-  hideModal() {
+  hideModal = () => {
     this.setState({ showModal: false });
   }
 
