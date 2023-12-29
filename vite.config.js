@@ -6,6 +6,7 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [preact()],
   build: {
+    chunkSizeWarningLimit: 2000,
     target: 'esnext',
     rollupOptions: {
       input: {
