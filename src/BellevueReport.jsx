@@ -1,6 +1,7 @@
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
 import { Component } from 'preact';
 import { DateTime } from 'luxon';
+import ExcelJS from 'exceljs';
 import graphQL from './graphQL.js';
 
 function arrayToOptions(arr) {
@@ -42,10 +43,6 @@ class BellevueReport extends Component {
       cityLookup: null,
       reportTab: 'Counts',
     };
-
-    this.refreshData = this.refreshData.bind(this);
-    this.setReportTab= this.setReportTab.bind(this);
-    this.setYear = this.setYear.bind(this);
   }
 
   componentDidMount() {
@@ -53,11 +50,11 @@ class BellevueReport extends Component {
     this.loadLookups();
   }
 
-  setYear(e) {
+  setYear = e => {
     this.setState({ year: e.target.value });
   }
 
-  setReportTab(e) {
+  setReportTab = e => {
     this.setState({ reportTab: e.target.value });
   }
 
@@ -246,8 +243,45 @@ class BellevueReport extends Component {
     this.setState({ data });
   }
 
-  refreshData() {
+  refreshData = () => {
     this.aggregateData(this.state.year);
+  }
+
+  downloadToFile = (content, filename, contentType) => {
+    const a = document.createElement('a');
+    const file = new Blob([content], { type: contentType });
+
+    a.href= URL.createObjectURL(file);
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(a.href);
+  }
+
+  saveWorksheet = async () => {
+    const { year } = this.state;
+    if (! this.dataCache[year] ) {
+      this.dataCache[year] = await this.loadData(year);
+    }
+
+    const unduplicatedVisits = this.dataCache[year];
+
+    const workbook = new ExcelJS.Workbook();
+    Object.entries(this.reportTabs).forEach( ([label, aggFunc]) => {
+      const worksheet = workbook.addWorksheet(label);
+      const data = aggFunc(unduplicatedVisits);
+
+      data.forEach( row => {
+        worksheet.addRow(row);
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.downloadToFile(
+      buffer,
+      'Bellevue-EOY-Report.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
   }
 
   render() {
@@ -290,6 +324,7 @@ class BellevueReport extends Component {
             </Col>
             <Col>
               <Button onClick={this.refreshData}>Refresh</Button>
+              <Button onClick={this.saveWorksheet}>Save Worksheet</Button>
             </Col>
           </Row>
         </Form>
