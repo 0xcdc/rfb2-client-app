@@ -1,7 +1,7 @@
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
+import { utils, writeFileXLSX } from "xlsx";
 import { Component } from 'preact';
 import { DateTime } from 'luxon';
-import ExcelJS from 'exceljs';
 import graphQL from './graphQL.js';
 
 function arrayToOptions(arr) {
@@ -263,25 +263,16 @@ class BellevueReport extends Component {
     if (! this.dataCache[year] ) {
       this.dataCache[year] = await this.loadData(year);
     }
-
     const unduplicatedVisits = this.dataCache[year];
 
-    const workbook = new ExcelJS.Workbook();
+    const workbook = utils.book_new();
     Object.entries(this.reportTabs).forEach( ([label, aggFunc]) => {
-      const worksheet = workbook.addWorksheet(label);
       const data = aggFunc(unduplicatedVisits);
-
-      data.forEach( row => {
-        worksheet.addRow(row);
-      });
+      const worksheet = utils.aoa_to_sheet(data);
+      utils.book_append_sheet(workbook, worksheet, label);
     });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.downloadToFile(
-      buffer,
-      'Bellevue-EOY-Report.xlsx',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
+    writeFileXLSX(workbook, "Bellevue-EOY-Report.xlsx", { compression: true });
   }
 
   render() {
