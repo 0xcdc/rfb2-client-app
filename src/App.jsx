@@ -11,6 +11,7 @@ import Home from './Home.jsx';
 import Household from './Household.jsx';
 import Layout from './Layout.jsx';
 import Report from './Report.jsx';
+import Translate from './Translate.jsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,6 +20,7 @@ const router = createBrowserRouter(
         <Route path='/households/:id' element={ <Household /> } />
         <Route path='report' element={ <Report /> } />
         <Route path='EOYReport' element={ <BellevueReport /> } />
+        <Route path='Translate' element={ <Translate /> } />
         <Route path='/' element={ <Home />} />
       </Route>
       <Route path='/heatmap/*' element={ <HeatMap /> } />
