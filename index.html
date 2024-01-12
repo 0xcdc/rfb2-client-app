@@ -27,6 +27,16 @@
       );
 
       window.libraries = Object.fromEntries(libraryNames.map( (name, index) => [name, loadedLibraries[index]]));
+
+      const { translations } = (await graphQL('{translations { id value languageId set }}')).data;
+      window.translations = translations.reduce( (accumulator, row) => {
+        const { set, languageId, ...translation } = row;
+        accumulator[set] ||= {};
+        accumulator[set][`${languageId}`] ||= [];
+        accumulator[set][`${languageId}`].push(translation);
+        return accumulator;
+      }, {});
+
       renderApp();
     </script>
     <div id="app"></div>

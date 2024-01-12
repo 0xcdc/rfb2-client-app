@@ -94,12 +94,6 @@ class EditDetailForm extends Component {
 
     const lookupQueries = [
       '{cities{id value:name}}',
-      '{incomeLevels{id value}}',
-      '{races{id value}}',
-      '{genders{id value}}',
-      '{militaryStatuses{id value}}',
-      '{ethnicities{id value}}',
-      '{yesNos{id value}}',
     ];
 
     const queries = lookupQueries;
@@ -504,7 +498,7 @@ class EditDetailForm extends Component {
             return this.householdTO.getValidationState(key);
           }}
           cities={this.state.cities}
-          incomeLevels={this.state.incomeLevels}
+          languageId={this.props.languageId}
         />
       );
     } else {
@@ -521,11 +515,7 @@ class EditDetailForm extends Component {
           getValidationState={key => {
             return clientTO.getValidationState(key);
           }}
-          races={this.state.races}
-          genders={this.state.genders}
-          militaryStatuses={this.state.militaryStatuses}
-          ethnicities={this.state.ethnicities}
-          yesNos={this.state.yesNos}
+          languageId={this.props.languageId}
         />
       );
     }

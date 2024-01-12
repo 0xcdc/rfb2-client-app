@@ -139,7 +139,7 @@ export default function HouseholdDetailForm(props) {
         group="incomeLevelId"
         label="Income"
         normalized
-        choices={props.incomeLevels}
+        choices={window.translations.income_level}
         sortOrder="id"
         {...props}
       />

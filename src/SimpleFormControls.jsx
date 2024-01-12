@@ -57,8 +57,27 @@ export const SimpleFormGroupText = forwardRef((props, ref) => {
   );
 });
 
+function getChoicesForLanguage({ languageId, choices }) {
+  // choices will either be
+  //   an object with a key of languageId followed by the set of choices for that language
+  // or
+  //  a flat array of choices (ex. cities)
+  if (Array.isArray(choices)) return choices;
+  const englishChoices = choices['0'];
+
+  // non-english translations might be sparse
+  // therefore we iterate over the english ones and return
+  // the translation if it exists and fall back to english
+  // if it does not
+  return ( languageId == 0 ) ?
+    englishChoices :
+    englishChoices.map( englishChoice =>
+      choices[languageId]?.find( c => c.id == englishChoice.id) ||
+      englishChoice);
+}
+
 function getSortedChoices(props) {
-  let choices = props.choices
+  let choices = getChoicesForLanguage(props)
     .map(({ id, value }) => ({
       id,
       value: props.normalized ? id : value,
@@ -67,17 +86,37 @@ function getSortedChoices(props) {
   if ( !props.sortOrder ) {
     choices.sort( ( a, b ) => {
       // we always want unknown to be first
+      // unknown can be either -1 or 0 with -1 having the higher precedence
       if (a.display === b.display) return 0;
-      if (a.display === 'Unknown') return -1;
-      if (b.display === 'Unknown') return 1;
+      if (a.id === -1) return -1;
+      if (b.id === -1) return 1;
+      if (a.id === 0) return -1;
+      if (b.id === 0) return 1;
       return a.display.localeCompare(b.display);
     });
   } else if ( props.sortOrder === 'id' ) {
     choices.sort( (a, b) => a.id - b.id);
   } else {
     console.assert(choices.length === props.sortOrder.length,
-      'sortOrder does not match number of options');
-    choices = props.sortOrder.map( i => choices[i]);
+      'sortOrder count does not match number of options');
+    console.assert((new Set(props.sortOrder)).size === props.sortOrder.length,
+      'sortOrder contains duplicates');
+
+    const { sortOrderChoices, badSortOrders } = props.sortOrder.reduce( (accumulator, so) => {
+      const foundChoice = choices.find( c => c.id == so);
+      if (foundChoice) {
+        accumulator.sortOrderChoices.push(foundChoice);
+      } else {
+        accumulator.badSortOrders.push(so);
+      }
+      return accumulator;
+    }, { sortOrderChoices: [], badSortOrders: [] });
+    console.assert(badSortOrders.length == 0,
+      'sortOrder contains ids which are not in the choices');
+
+    // then concat any choices that weren't specified in the sort order
+    const leftOverChoices = choices.filter( (_, i) => !props.sortOrder.includes(i))
+    choices = sortOrderChoices.concat(leftOverChoices);
   }
 
   return choices;
@@ -87,8 +126,9 @@ function getSortedChoices(props) {
 export function SimpleFormGroupRadio(props) {
   const obj = { ...props.household, ...props.client };
   // render inline if the total length of the values is < 45
+  const choices = getChoicesForLanguage(props);
   const inline =
-    props.choices.reduce((accumulator, currentValue) => {
+    choices.reduce((accumulator, currentValue) => {
       const { value } = currentValue;
       return accumulator + value.length + 5;
     }, 0) < 65;
