@@ -133,7 +133,7 @@ export default function Translate() {
   }
 
   return (
-    <Form> 
+    <Form>
       <Row>
         <Form.Label column sm={2}>Translation Set</Form.Label>
         <Col>
