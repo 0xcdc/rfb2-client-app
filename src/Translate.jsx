@@ -144,7 +144,7 @@ export default function Translate() {
         <Form.Label column sm={2}>Language</Form.Label>
         <Col>
           <Form.Select value={languageId} onChange={e => setLanguageId(parseInt(e.target.value, 10))}>
-            { languages.map( l => <option value={l.id} key={l.id}>{l.name}</option>) }
+            { languages.map( l => <option value={l.id} key={l.id}>{`${l.name}-${l.id}`}</option>) }
           </Form.Select>
         </Col>
         <Col sm={2}>
