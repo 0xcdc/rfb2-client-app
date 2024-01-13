@@ -78,7 +78,7 @@ export default function Translate() {
   }
 
   function hasChanges() {
-    return translations.some( row => row.newValue != null && row.newValue != row.value);
+    return translations.some( row => row.newValue && ((row.newValue ?? '') != (row.value ?? '')));
   }
 
   function isInvalid() {
@@ -99,7 +99,7 @@ export default function Translate() {
   function getTranslation(id) {
     const row = data.find( d => d.id == id)
     if (!row) return null;
-    if (row.newValue != null) return row.newValue;
+    if (row.newValue != null) return row.newValue == '' ? null : row.newValue;
     return row.value;
   }
 
