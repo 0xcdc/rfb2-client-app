@@ -78,7 +78,7 @@ export default function Translate() {
   }
 
   function hasChanges() {
-    return translations.some( row => row.newValue && ((row.newValue ?? '') != (row.value ?? '')));
+    return translations.some( row => row.newValue != null && ((row.newValue ?? '') != (row.value ?? '')));
   }
 
   function isInvalid() {
