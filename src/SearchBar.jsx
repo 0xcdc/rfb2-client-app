@@ -10,16 +10,23 @@ import graphQL from './graphQL';
 const pageSize = 8;
 
 function buildLetterHistogram(value) {
-  const arr = new Array(27);
+  const arr = new Array(26 + 10 + 1); // 26 letters, 10 numbers, and 1 for everything else
   arr.fill(0);
   const lv = value.toLowerCase();
   const littleA = 'a'.charCodeAt(0);
+  const zero = '0'.charCodeAt(0);
   for (let i = 0; i < lv.length; i += 1) {
-    let c = lv.charCodeAt(i) - littleA;
-    if (c < 0 || c >= 26) {
-      c = 26;
-    }
-    arr[c] += 1;
+    const v = lv.charCodeAt(i);
+    const letterOffset = v - littleA;
+    const numberOffset = v - zero;
+
+    const index =
+      (letterOffset >= 0 && letterOffset < 26) ?
+        letterOffset :
+        (numberOffset >=0 && numberOffset < 10) ?
+          numberOffset + 26 :
+          26 + 10;
+    arr[index] += 1;
   }
 
   return arr;
@@ -122,13 +129,13 @@ class SearchBar extends Component {
   componentDidMount() {
     this.textInput.current.focus();
     graphQL(
-      '{clients{id, name, householdId, householdSize, cardColor, lastVisit, note}}',
+      '{clients{id, name, householdId, householdSize, cardColor, lastVisit, note, phoneNumber}}',
     ).then(json => {
       const clients = json.data.clients.map(client => {
         return {
           ...client,
-          nameParts: client.name.toLowerCase().split(' '),
-          histogram: buildLetterHistogram(client.name),
+          nameParts: `${client.name.toLowerCase()} ${client.phoneNumber.toLowerCase()}`.split(/[^a-z0-9]/),
+          histogram: buildLetterHistogram(`${client.name} ${client.phoneNumber}`),
           lastVisit: DateTime.fromISO(client.lastVisit),
         };
       });

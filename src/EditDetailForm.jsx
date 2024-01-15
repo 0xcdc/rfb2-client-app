@@ -89,6 +89,7 @@ class EditDetailForm extends Component {
            speaksEnglish
            militaryStatusId
            birthYear
+           phoneNumber
          }
        }}`;
 

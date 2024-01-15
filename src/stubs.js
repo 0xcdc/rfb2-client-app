@@ -11,6 +11,7 @@ export function stubClient(householdId) {
     speaksEnglish: -1,
     militaryStatusId: 0,
     ethnicityId: 0,
+    phoneNumber: '',
   };
 }
 

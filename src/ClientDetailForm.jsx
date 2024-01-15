@@ -76,6 +76,11 @@ export default function ClientDetailForm(props) {
         normalized
         {...props}
       />
+      <SimpleFormGroupText
+        group="phoneNumber"
+        label="Phone Number"
+        {...props}
+      />
       <Button
         variant="link"
         className='xButton'

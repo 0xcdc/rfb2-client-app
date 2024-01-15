@@ -25,7 +25,7 @@ export default function Clients(props) {
                   if (props.onClientSelect) props.onClientSelect(client, index);
                 }}
               >
-                {`${client.name} `}
+                {`${client.name} ${client.phoneNumber}`}
                 {client.note ? (
                   <OverlayTrigger overlay={(<Tooltip>{client.note}</Tooltip>)}>
                     <Badge bg="secondary">note</Badge>
