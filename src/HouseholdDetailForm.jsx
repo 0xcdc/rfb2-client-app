@@ -117,19 +117,17 @@ export default function HouseholdDetailForm(props) {
       <SimpleFormGroupText
         ref={address1}
         group="address1"
-        label="Address 1"
         {...props}
         autocomplete="off"
       />
       <SimpleFormGroupText
         group="address2"
-        label="Address 2"
         {...props}
         autocomplete="off"
       />
       <SimpleFormGroupSelect
         group="cityId"
-        label="City"
+        label="city"
         normalized
         choices={props.cities}
         {...props}
@@ -137,7 +135,7 @@ export default function HouseholdDetailForm(props) {
       <SimpleFormGroupText group="zip" {...props} />
       <SimpleFormGroupRadio
         group="incomeLevelId"
-        label="Income"
+        label="income"
         normalized
         choices={window.translations.income_level}
         sortOrder="id"

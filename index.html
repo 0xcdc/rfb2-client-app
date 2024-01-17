@@ -28,12 +28,19 @@
 
       window.libraries = Object.fromEntries(libraryNames.map( (name, index) => [name, loadedLibraries[index]]));
 
-      const { translations } = (await graphQL('{translations { id value languageId set }}')).data;
+      const { translations } = (await graphQL('{translations { id value languageId set tag}}')).data;
       window.translations = translations.reduce( (accumulator, row) => {
-        const { set, languageId, ...translation } = row;
+        const { set, languageId, tag, ...translation } = row;
         accumulator[set] ||= {};
-        accumulator[set][`${languageId}`] ||= [];
-        accumulator[set][`${languageId}`].push(translation);
+        if (set == 'prompt') {
+          // prompts are singletons so we just create a languageId: value mapping
+          accumulator[set][tag] ||= {};
+          accumulator[set][tag][languageId] = translation.value;
+        } else {
+          // everything else can have multiple values so we need an array of translations
+          accumulator[set][languageId] ||= [];
+          accumulator[set][languageId].push(translation);
+        }
         return accumulator;
       }, {});
 

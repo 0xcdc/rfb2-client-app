@@ -19,19 +19,17 @@ export default function ClientDetailForm(props) {
       <SimpleFormGroupText
         ref={name}
         group="name"
-        label="Name"
         {...props}
       />
       <SimpleFormGroupRadio
         choices={window.translations.gender}
         group="genderId"
-        label="Gender"
+        label="gender"
         normalized
         {...props}
       />
       <SimpleFormGroupText
         group="birthYear"
-        label="Birth Year"
         {...props}
       />
       <SimpleFormGroupRadio
@@ -43,21 +41,21 @@ export default function ClientDetailForm(props) {
       <SimpleFormGroupRadio
         choices={window.translations.yes_no}
         group="refugeeImmigrantStatus"
-        label="Refugee or Immigrant"
+        label="refugee"
         normalized
         {...props}
       />
       <SimpleFormGroupRadio
         choices={window.translations.ethnicity}
         group="ethnicityId"
-        label="Ethnicity"
+        label="ethnicity"
         normalized
         {...props}
       />
       <SimpleFormGroupSelect
         choices={window.translations.race}
         group="raceId"
-        label="Race"
+        label="race"
         sortOrder={[0, 5, 1, 2, 6, 4, 3, 7, 8]}
         normalized
         {...props}
@@ -65,20 +63,18 @@ export default function ClientDetailForm(props) {
       <SimpleFormGroupRadio
         choices={window.translations.yes_no}
         group="speaksEnglish"
-        label="Speaks English"
         normalized
         {...props}
       />
       <SimpleFormGroupRadio
         choices={window.translations.militaryStatus}
         group="militaryStatusId"
-        label="Military Status"
+        label="militaryStatus"
         normalized
         {...props}
       />
       <SimpleFormGroupText
         group="phoneNumber"
-        label="Phone Number"
         {...props}
       />
       <Button

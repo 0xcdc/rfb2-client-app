@@ -1,8 +1,13 @@
 import { Col, Form, Row } from 'react-bootstrap';
 import { forwardRef } from 'preact/compat';
 
-function capitalize(v) {
-  return v.charAt(0).toUpperCase() + v.substring(1);
+const English = 0;
+
+function getLabel(props) {
+  const tag = props.label ?? props.group;
+  const { languageId } = props;
+  const promptTranslations = window.translations.prompt[tag];
+  return promptTranslations[languageId] ?? promptTranslations[English];
 }
 
 export function SimpleFormGroup(props) {
@@ -16,7 +21,7 @@ export function SimpleFormGroup(props) {
   return (
     <Form.Group as={Row} className="mb-3" controlId={`formHorizontal_${props.group}`}>
       <Form.Label column sm={2} style={style}>
-        {props.label || capitalize(props.group)}
+        {getLabel(props)}
       </Form.Label>
       <Col sm={10}>
         {props.children}
@@ -46,7 +51,7 @@ export const SimpleFormGroupText = forwardRef((props, ref) => {
         style={style}
         type="text"
         placeholder={
-          props.placeholder || `Enter ${props.label || capitalize(props.group)}`
+          props.placeholder || `Enter ${getLabel(props)}`
         }
         value={obj[props.group] || ''}
         onChange={e => {
@@ -63,13 +68,13 @@ function getChoicesForLanguage({ languageId, choices }) {
   // or
   //  a flat array of choices (ex. cities)
   if (Array.isArray(choices)) return choices;
-  const englishChoices = choices['0'];
+  const englishChoices = choices[English];
 
   // non-english translations might be sparse
   // therefore we iterate over the english ones and return
   // the translation if it exists and fall back to english
   // if it does not
-  return ( languageId == 0 ) ?
+  return ( languageId == English ) ?
     englishChoices :
     englishChoices.map( englishChoice =>
       choices[languageId]?.find( c => c.id == englishChoice.id) ||
