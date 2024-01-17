@@ -1,4 +1,5 @@
-import { Button, CloseButton, Col, ListGroup, OverlayTrigger, Row, Tooltip } from 'react-bootstrap';
+import { Button, CloseButton, Col, Dropdown, DropdownButton, ListGroup, OverlayTrigger, Row, Tooltip }
+  from 'react-bootstrap';
 import { stubClient, stubHousehold } from './stubs.js';
 
 import ClientDetailForm from './ClientDetailForm.jsx';
@@ -55,7 +56,6 @@ class EditDetailForm extends Component {
   constructor(props) {
     super(props);
     this.id = props.id;
-    this.handleTabSelect = this.handleTabSelect.bind(this);
 
     this.state = {
       isSaving: false,
@@ -63,6 +63,8 @@ class EditDetailForm extends Component {
       dataReady: false,
       firstSave: true,
       needGeocode: false,
+      languageId: 0,
+      languages: [{ name: 'English', id: 0 }],
     };
   }
 
@@ -95,6 +97,7 @@ class EditDetailForm extends Component {
 
     const lookupQueries = [
       '{cities{id value:name}}',
+      '{languages{id name}}',
     ];
 
     const queries = lookupQueries;
@@ -421,6 +424,18 @@ class EditDetailForm extends Component {
           </Button>
         </Link>
         <div className='text-end'>
+          <DropdownButton
+            as="span"
+            title={this.state.languages.find( l => l.id == this.state.languageId).name}
+          >
+            {
+              this.state.languages.map( l => (
+                <Dropdown.Item key={l.id} onClick={() => this.setState({ languageId: l.id })} >
+                  {l.name}
+                </Dropdown.Item>
+              ))
+            }
+          </DropdownButton>
           <LinkWithDisabled disabled={!this.canLeave()} reloadDocument to="/households/-1">
             <OverlayTrigger delay={250} placement="auto" overlay={<Tooltip>Add a new Household</Tooltip>}>
               <Button variant={this.canLeave() ? "primary" : "secondary"}>
@@ -499,7 +514,7 @@ class EditDetailForm extends Component {
             return this.householdTO.getValidationState(key);
           }}
           cities={this.state.cities}
-          languageId={this.props.languageId}
+          languageId={this.state.languageId}
         />
       );
     } else {
@@ -516,7 +531,7 @@ class EditDetailForm extends Component {
           getValidationState={key => {
             return clientTO.getValidationState(key);
           }}
-          languageId={this.props.languageId}
+          languageId={this.state.languageId}
         />
       );
     }
