@@ -1,16 +1,29 @@
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import graphQL from './graphQL.js';
-
+import { useSearchParams } from "react-router-dom";
 
 export default function Translate() {
+  const [searchParams] = useSearchParams();
+  const defaultLanguageId = searchParams.get('languageId') ?? 0;
+  const defaultTranslationSet = searchParams.get('set') ?? '';
+  const defaultEditingId = searchParams.get('id') ?? null;
+
+  const [dataReady, setDataReady] = useState(false);
   const [languages, setLanguages] = useState([]);
-  const [languageId, setLanguageId] = useState(0);
+  const [languageId, setLanguageId] = useState(defaultLanguageId);
   const [translations, setTranslations] = useState([]);
-  const [translationSet, setTranslationSet] = useState('');
+  const [translationSet, setTranslationSet] = useState(defaultTranslationSet);
   const [translationSets, setTranslationSets] = useState([]);
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState(defaultEditingId);
   const input = useRef(null);
+
+  if ((translations.length > 0) &&
+      (languages.length > 0) &&
+      (translationSets.length > 0)) {
+    if (translationSet == '') setTranslationSet(translationSets[0]);
+    setDataReady(true);
+  }
 
   useEffect( () => {
     graphQL('{languages { id, name, code}}').then( json => {
@@ -20,7 +33,6 @@ export default function Translate() {
     graphQL('{translationSets}').then( json => {
       const { translationSets } = json.data;
       setTranslationSets(translationSets);
-      setTranslationSet(translationSets[0]);
     });
     graphQL('{translations { set, id, languageId, value }}').then( json => {
       const { translations } = json.data;
@@ -29,11 +41,11 @@ export default function Translate() {
   }, []);
 
   useEffect( () => {
-    if (input && input.current) {
+    if (dataReady && input && input.current) {
       input.current.focus();
       input.current.select();
     }
-  }, [editingId]);
+  }, [editingId, dataReady]);
 
   const language = languages.find( l => l.id == languageId)?.name ?? 'Value';
   const isEnglish = languageId == 0;
@@ -133,85 +145,87 @@ export default function Translate() {
   }
 
   return (
-    <Form>
-      <Row>
-        <Form.Label column sm={2}>Translation Set</Form.Label>
-        <Col>
-          <Form.Select value={translationSet} onChange={e => setTranslationSet(e.target.value)}>
-            { translationSets.map( t => <option value={t} key={t}>{t}</option>) }
-          </Form.Select>
-        </Col>
-        <Form.Label column sm={2}>Language</Form.Label>
-        <Col>
-          <Form.Select value={languageId} onChange={e => setLanguageId(parseInt(e.target.value, 10))}>
-            { languages.map( l => <option value={l.id} key={l.id}>{`${l.name}-${l.id}`}</option>) }
-          </Form.Select>
-        </Col>
-        <Col sm={2}>
-          <Button
-            variant={saveButtonVariant()}
-            onClick={() => saveToServer()}
-            disabled={isInvalid() || !hasChanges()}
-          >
-            {saveButtonText()}
-          </Button>
-        </Col>
-      </Row>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th style={{ width: '20px' }}>Id</th>
-            { !isEnglish ? <th style={{ width: '400px' }}>English</th> : <></> }
-            <th style={{ width: '400px' }}>{language}</th>
-            { !isEnglish ?
-              <>
-                <th style={{ width: '20px' }} />
-              </>:
-              <></>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          {
-            english.map( row => (
-              <tr
-                key={row.id}
-                onClick={e => {
-                  saveRow();
-                  setEditingId(row.id);
-                  e.stopPropagation();
-                }}>
-                <td>{row.id}</td>
-                { !isEnglish ?
-                  <td>{row.newValue ?? row.value}</td> :
-                  <></>
-                }
-                <td>
-                  {row.id == editingId ?
-                    <Form.Control
-                      ref={input}
-                      type='text'
-                      onChange={() => saveRow()}
-                      onBlur={ () => setEditingId(null)}
-                      value={getTranslation(row.id) ?? ''} /> :
-                    getTranslation(row.id) ?? '(None)'
+    !dataReady ?
+      <></> :
+      <Form>
+        <Row>
+          <Form.Label column sm={2}>Translation Set</Form.Label>
+          <Col>
+            <Form.Select value={translationSet} onChange={e => setTranslationSet(e.target.value)}>
+              { translationSets.map( t => <option value={t} key={t}>{t}</option>) }
+            </Form.Select>
+          </Col>
+          <Form.Label column sm={2}>Language</Form.Label>
+          <Col>
+            <Form.Select value={languageId} onChange={e => setLanguageId(parseInt(e.target.value, 10))}>
+              { languages.map( l => <option value={l.id} key={l.id}>{`${l.name}-${l.id}`}</option>) }
+            </Form.Select>
+          </Col>
+          <Col sm={2}>
+            <Button
+              variant={saveButtonVariant()}
+              onClick={() => saveToServer()}
+              disabled={isInvalid() || !hasChanges()}
+            >
+              {saveButtonText()}
+            </Button>
+          </Col>
+        </Row>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th style={{ width: '20px' }}>Id</th>
+              { !isEnglish ? <th style={{ width: '400px' }}>English</th> : <></> }
+              <th style={{ width: '400px' }}>{language}</th>
+              { !isEnglish ?
+                <>
+                  <th style={{ width: '20px' }} />
+                </>:
+                <></>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            {
+              english.map( row => (
+                <tr
+                  key={row.id}
+                  onClick={e => {
+                    saveRow();
+                    setEditingId(row.id);
+                    e.stopPropagation();
+                  }}>
+                  <td>{row.id}</td>
+                  { !isEnglish ?
+                    <td>{row.newValue ?? row.value}</td> :
+                    <></>
                   }
-                </td>
-                { !isEnglish ?
-                  <>
-                    <td className='editIcon'>
-                      <Button className='xButton' variant="link" onClick={ () => translate(row.id)}>
-                        <i class="bi bi-translate" />
-                      </Button>
-                    </td>
-                  </> :
-                  <></>
-                }
-              </tr>
-            ))
-          }
-        </tbody>
-      </Table>
-    </Form>
+                  <td>
+                    {row.id == editingId ?
+                      <Form.Control
+                        ref={input}
+                        type='text'
+                        onChange={() => saveRow()}
+                        onBlur={ () => setEditingId(null)}
+                        value={getTranslation(row.id) ?? ''} /> :
+                      getTranslation(row.id) ?? '(None)'
+                    }
+                  </td>
+                  { !isEnglish ?
+                    <>
+                      <td className='editIcon'>
+                        <Button className='xButton' variant="link" onClick={ () => translate(row.id)}>
+                          <i class="bi bi-translate" />
+                        </Button>
+                      </td>
+                    </> :
+                    <></>
+                  }
+                </tr>
+              ))
+            }
+          </tbody>
+        </Table>
+      </Form>
   );
 }
