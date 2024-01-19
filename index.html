@@ -30,16 +30,16 @@
 
       const { translations } = (await graphQL('{translations { id value languageId set tag}}')).data;
       window.translations = translations.reduce( (accumulator, row) => {
-        const { set, languageId, tag, ...translation } = row;
+        const { set, languageId, tag } = row;
         accumulator[set] ||= {};
         if (set == 'prompt') {
-          // prompts are singletons so we just create a languageId: value mapping
+          // prompts are singletons so we just create a languageId: translation mapping
           accumulator[set][tag] ||= {};
-          accumulator[set][tag][languageId] = translation.value;
+          accumulator[set][tag][languageId] = row;
         } else {
           // everything else can have multiple values so we need an array of translations
           accumulator[set][languageId] ||= [];
-          accumulator[set][languageId].push(translation);
+          accumulator[set][languageId].push(row);
         }
         return accumulator;
       }, {});

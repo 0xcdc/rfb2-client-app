@@ -1,16 +1,23 @@
 import { Col, Form, Row } from 'react-bootstrap';
 import { forwardRef } from 'preact/compat';
+import { useNavigate } from "react-router-dom";
 
 const English = 0;
 
+function getTag(props) {
+  return props.label ?? props.group;
+}
+
 function getLabel(props) {
-  const tag = props.label ?? props.group;
+  const tag = getTag(props);
   const { languageId } = props;
   const promptTranslations = window.translations.prompt[tag];
-  return promptTranslations[languageId] ?? promptTranslations[English];
+  const translation = promptTranslations[languageId] ?? promptTranslations[English];
+  return translation.value;
 }
 
 export function SimpleFormGroup(props) {
+  const navigate = useNavigate();
   const style = {};
   if (props.getValidationState(props.group) === 'error') {
     style.color = 'red';
@@ -19,8 +26,22 @@ export function SimpleFormGroup(props) {
   }
 
   return (
-    <Form.Group as={Row} className="mb-3" controlId={`formHorizontal_${props.group}`}>
-      <Form.Label column sm={2} style={style}>
+    <Form.Group as={Row} className="mb-3" controlId={`formHorizontal_${props.group}`} >
+      <Form.Label
+        column sm={2}
+        style={style}
+        onClick={e => {
+          if (e.ctrlKey) {
+            const tag = getTag(props);
+            const { languageId } = props;
+            const { id } = window.translations.prompt[tag][English];
+            const set='prompt';
+
+            const url = `/translate?set=${set}&id=${id}&languageId=${languageId}`;
+            navigate(url);
+          }
+        }}
+      >
         {getLabel(props)}
       </Form.Label>
       <Col sm={10}>
@@ -62,12 +83,16 @@ export const SimpleFormGroupText = forwardRef((props, ref) => {
   );
 });
 
-function getChoicesForLanguage({ languageId, choices }) {
+function areChoicesTranslated(choices) {
   // choices will either be
   //   an object with a key of languageId followed by the set of choices for that language
   // or
   //  a flat array of choices (ex. cities)
-  if (Array.isArray(choices)) return choices;
+  return !Array.isArray(choices);
+}
+
+function getChoicesForLanguage({ languageId, choices }) {
+  if (!areChoicesTranslated(choices)) return choices;
   const englishChoices = choices[English];
 
   // non-english translations might be sparse
@@ -83,10 +108,12 @@ function getChoicesForLanguage({ languageId, choices }) {
 
 function getSortedChoices(props) {
   let choices = getChoicesForLanguage(props)
-    .map(({ id, value }) => ({
+    .map(({ id, value, set }) => ({
       id,
       value: props.normalized ? id : value,
-      display: value }));
+      display: value,
+      set,
+    }));
 
   if ( !props.sortOrder ) {
     choices.sort( ( a, b ) => {
@@ -129,6 +156,7 @@ function getSortedChoices(props) {
 
 
 export function SimpleFormGroupRadio(props) {
+  const navigate = useNavigate();
   const obj = { ...props.household, ...props.client };
   // render inline if the total length of the values is < 45
   const choices = getChoicesForLanguage(props);
@@ -147,7 +175,7 @@ export function SimpleFormGroupRadio(props) {
   return (
     <SimpleFormGroup {...props}>
       {getSortedChoices( props )
-        .map( ({ id, value, display }) => {
+        .map( ({ id, value, set, display }) => {
           const isChecked = obj[props.group] === value;
           return (
             <Form.Check
@@ -160,6 +188,13 @@ export function SimpleFormGroupRadio(props) {
               onChange={() => {
                 props.onChange(obj, props.group, value);
               }}
+              onClick={e => {
+                if (areChoicesTranslated(props.choices) && e.ctrlKey) {
+                  const { languageId } = props;
+                  const url = `/translate?set=${set}&id=${id}&languageId=${languageId}`;
+                  navigate(url);
+                }
+              }}
               style={isChecked ? style : {}}
               type="radio"
               value={value}
@@ -171,6 +206,7 @@ export function SimpleFormGroupRadio(props) {
 }
 
 export function SimpleFormGroupSelect(props) {
+  const navigate = useNavigate();
   const obj = { ...props.household, ...props.client };
 
   const style = getValidationStyle(props.getValidationState(props.group));
@@ -184,6 +220,15 @@ export function SimpleFormGroupSelect(props) {
             value = parseInt(value, 10);
           }
           props.onChange(obj, props.group, value);
+        }}
+        onMouseDown={e => {
+          if (areChoicesTranslated(props.choices) && e.ctrlKey) {
+            const { languageId } = props;
+            // grab the set name from the first English choice
+            const [{ set }] = props.choices[English];
+            const url = `/translate?set=${set}&languageId=${languageId}`;
+            navigate(url);
+          }
         }}
         value={obj[props.group]}
         style={style}
