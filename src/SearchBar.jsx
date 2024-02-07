@@ -48,7 +48,6 @@ function normalizeSelection(state) {
   if (!filteredClients) return {};
 
   let { currentPage, selectedIndex } = state;
-
   if (indexIncr) {
     selectedIndex += indexIncr;
   }
@@ -84,7 +83,6 @@ function normalizeSelection(state) {
     newState.loadVisits = true;
     newState.visits = [];
   }
-
   return newState;
 }
 
@@ -128,16 +126,50 @@ class SearchBar extends Component {
 
   componentDidMount() {
     this.textInput.current.focus();
-    graphQL(
-      '{clients{id, name, householdId, householdSize, cardColor, lastVisit, note, phoneNumber}}',
+    graphQL(`
+{
+  households(ids: []) {
+    householdId: id
+    lastVisit
+    note
+    clients {
+      id
+      name
+      phoneNumber
+    }
+  }
+}`
     ).then(json => {
-      const clients = json.data.clients.map(client => {
-        return {
+      const clients = json.data.households.flatMap(h => {
+        const { clients, ...householdData } = h;
+
+        function cardColor(count) {
+          switch (count) {
+            case 0:
+            case 1:
+            case 2:
+              return 'red';
+            case 3:
+            case 4:
+            case 5:
+              return 'blue';
+            case 6:
+            case 7:
+              return 'yellow';
+            default:
+              return 'purple';
+          }
+        }
+
+        return clients.map( client => ({
           ...client,
+          ...householdData,
           nameParts: `${client.name.toLowerCase()} ${client.phoneNumber.toLowerCase()}`.split(/[^a-z0-9]/),
           histogram: buildLetterHistogram(`${client.name} ${client.phoneNumber}`),
           lastVisit: DateTime.fromISO(client.lastVisit),
-        };
+          householdSize: clients.length,
+          cardColor: cardColor(clients.length),
+        }));
       });
 
       clients.sort((a, b) => {

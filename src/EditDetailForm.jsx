@@ -77,12 +77,14 @@ class EditDetailForm extends Component {
          cityId
          zip
          incomeLevelId
-         latlng
+         location {
+           lat
+           lng
+         }
          note
          clients {
            id
            name
-           householdId
            genderId
            disabled
            refugeeImmigrantStatus
