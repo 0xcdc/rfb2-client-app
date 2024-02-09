@@ -92,35 +92,46 @@ class BellevueReport extends Component {
   }
 
   async loadData(year) {
-    const queries = [
-      `{clientVisitsForYear(year: ${year}) {
-         age cityId date disabled genderId householdId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish
-       }}`,
+    const query =
       `{householdVisitsForYear(year: ${year}) {
          cityId date homeless householdId incomeLevelId
-       }}`,
-    ];
+         clients { age disabled genderId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish }
+       }}`;
 
-    const results = await Promise.all(queries.map( q => graphQL(q)));
+    const results = await graphQL(query);
+    let { householdVisitsForYear } = results.data;
 
-    const names = ['clientVisitsForYear', 'householdVisitsForYear'];
-    const [clientVisits, householdVisits] = names.map( (name, i) => {
-      const visits = results[i].data[name];
+    // build an object that maps householdId => first date the household visited
+    const firstVisitAccumulator = (acc, cur) => {
+      if (! acc[cur.householdId]) {
+        acc[cur.householdId] = cur.date;
+      }
+      return acc;
+    };
+    const firstVisitForHousehold = householdVisitsForYear.reduce( firstVisitAccumulator, {} );
 
-      // build an object that maps householdId => first date the household visited
-      const firstVisitAccumulator = (acc, cur) => {
-        if (! acc[cur.householdId]) {
-          acc[cur.householdId] = cur.date;
-        }
-        return acc;
+    // first push the household data down into the client visits
+    const clientVisitsForYear = householdVisitsForYear
+      .flatMap( hv => {
+        const { clients, ...householdData } = hv;
+
+        return clients.map( c => ({
+          ...c,
+          ...householdData,
+        }));
+      });
+
+    // now strip off the clients from the households
+    householdVisitsForYear = householdVisitsForYear.map( hv => {
+      const { clients, ...householdData } = hv;
+      return {
+        ...householdData,
       };
-      const firstVisitForHousehold = visits.reduce( firstVisitAccumulator, {} );
-
-      // create a second list of the first visit for each household ("unduplicated")
-      const unduplicatedVisits = visits.filter( v => v.date == firstVisitForHousehold[v.householdId]);
-
-      return unduplicatedVisits;
     });
+
+    // and then filter by first visit to get "unduplicated"
+    const [clientVisits, householdVisits] = [clientVisitsForYear, householdVisitsForYear]
+      .map( visits => visits.filter( v => v.date == firstVisitForHousehold[v.householdId]));
 
     return { clientVisits, householdVisits };
   }

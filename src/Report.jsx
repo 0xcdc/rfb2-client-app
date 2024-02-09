@@ -147,9 +147,19 @@ class Report extends Component {
 
   async loadData(year) {
     const results = await graphQL(`
-      {clientVisitsForYear(year: ${year}) {cityId date householdId age}}`);
+      {householdVisitsForYear(year: ${year}) {cityId date householdId clients {age}}}`);
 
-    const { clientVisitsForYear: clientVisits } = results.data;
+    const { householdVisitsForYear } = results.data;
+    const clientVisits = householdVisitsForYear.flatMap( hv => {
+      const { clients, ...householdData } = hv;
+      return clients.map( c => {
+        const { age } = c;
+        return {
+          age,
+          ...householdData,
+        };
+      });
+    });
 
     const firstVisitAccumulator = (acc, cur) => {
       if (! acc[cur.householdId]) {
@@ -159,7 +169,7 @@ class Report extends Component {
     };
 
     // build an object that maps householdId => first date the household visited
-    const firstVisitForHousehold = clientVisits.reduce( firstVisitAccumulator, {} );
+    const firstVisitForHousehold = householdVisitsForYear.reduce( firstVisitAccumulator, {} );
 
     return [clientVisits, firstVisitForHousehold];
   }
