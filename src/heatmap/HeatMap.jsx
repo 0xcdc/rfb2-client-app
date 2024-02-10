@@ -19,9 +19,9 @@ function HeatMapControls({ allHouseholds, mapApi }) {
       households = households.filter(h => h.lastVisit >= startDate.toISODate());
     }
 
-    // divide households into those with a latlng / address and those missing a latlng/address
-    const noAddress = households.filter(({ address1, latlng }) => address1 == '' || latlng == '');
-    households = households.filter( ({ address1, latlng }) => address1 != '' && latlng != '');
+    // divide households into those with a location / address and those missing a location/address
+    const noAddress = households.filter(({ address1, location }) => address1 == '' || location == null);
+    households = households.filter( ({ address1, location }) => address1 != '' && location != null);
 
     const data = { noAddress, hasAddress: households };
     // group the noAddress households by city and count them
@@ -105,17 +105,10 @@ export default function HeatMap() {
 
   useEffect( () => {
     if (allHouseholds.length == 0) {
-      const query = `{households(ids: []) { latlng lastVisit address1 city{name} }}`;
+      const query = `{households(ids: []) { location { lat lng } lastVisit address1 city{name} }}`;
 
       graphQL(query, 'households').then( json => {
-        let { households } = json.data;
-        households = households
-          .map( ({ lastVisit, latlng, address1, city }) => ({
-            lastVisit,
-            latlng: latlng ? JSON.parse(latlng) : '',
-            address1,
-            city,
-          }));
+        const { households } = json.data;
         initMap().then( mapApi => {
           setAllHouseholds(households);
           setMapApi(mapApi);

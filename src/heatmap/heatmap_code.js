@@ -6,7 +6,7 @@ function getLatLngForHouseholds(households) {
 
   // coordinates too far away cause it to not work
   const data = households
-    .map( ({ latlng }) => latlng)
+    .map( h => h.location)
     .filter( c => Math.abs(c.lat - foodbankLocation.lat) < 1)
     .filter( c => Math.abs(c.lng - foodbankLocation.lng) < 1)
     .map( c => new LatLng(c.lat, c.lng));
@@ -105,7 +105,7 @@ export async function initMap() {
       if ( newState.showPins ) {
         newState.pins = newState.households.map( h => new AdvancedMarkerElement({
           map,
-          position: h.latlng,
+          position: h.location,
         }));
       } else {
         newState.pins = [];
