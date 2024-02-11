@@ -146,7 +146,7 @@ export default function Utility() {
         setCities(cities);
       });
     } else if (allHouseholds.length == 0) {
-      const query = `{households(ids: []) { id latlng address1 address2 zip cityId }}`;
+      const query = `{households(ids: []) { id location { lat lng } address1 address2 zip cityId }}`;
 
       graphQL(query).then( json => {
         let { households } = json.data;
