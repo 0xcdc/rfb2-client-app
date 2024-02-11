@@ -66,13 +66,6 @@ export default function Translate() {
     setTranslations(updated);
   }
 
-  function getArgString(values) {
-    return Object
-      .keys(values)
-      .map( k => `${k}: ${JSON.stringify(values[k])}`)
-      .join(', ');
-  }
-
   function translate(id) {
     const { value } = translations.find( t =>
       t.languageId == 0 &&
@@ -81,8 +74,8 @@ export default function Translate() {
 
     const { code } = languages.find( l => l.id == languageId);
 
-    const query = `{googleTranslate(${getArgString({ code, value })})}`;
-    graphQL(query).then( json => {
+    const query = `query translate($code:String!, $value: String!){googleTranslate(code: $code, value: $value)}`;
+    graphQL(query, { code, value }).then( json => {
       const translation = json.data.googleTranslate;
       updateTranslation(id, translation);
       setEditingId(id);
@@ -131,9 +124,10 @@ export default function Translate() {
       changedRow = translations.find(row => row.newValue != null && row.newValue != row.value);
 
       const args = { id, languageId, set, value };
-      const query = `mutation{ updateTranslation(${getArgString(args)}) { ${Object.keys(args).join(' ')} }}`;
+      const query = `mutation updateTranslation($newTranslation: UpdateTranslationInput!)
+        { updateTranslation(translation: $newTranslation) {id} }`;
 
-      const json = await graphQL(query);
+      const json = await graphQL(query, { newTranslation: args });
       const { errors } = json;
       if (errors) {
         alert(errors.map(e => e.message).join("\n"));

@@ -44,9 +44,9 @@ async function graphQL(query, key) {
 
 */
 
-export default function graphQL(query) {
+export default function graphQL(query, variables) {
   const url = '/graphQL';
-  const body = JSON.stringify({ query });
+  const body = JSON.stringify({ query, variables });
 
   return fetch(url, {
     method: 'POST',
