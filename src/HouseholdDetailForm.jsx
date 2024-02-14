@@ -99,12 +99,8 @@ export default function HouseholdDetailForm(props) {
 
 
         const { location } = place.geometry;
-        const latlng = JSON.stringify({
-          lat: location.lat(),
-          lng: location.lng(),
-        });
 
-        props.onChange(props.household, "latlng", latlng);
+        props.onChange(props.household, "location", location);
       }
     }
 
