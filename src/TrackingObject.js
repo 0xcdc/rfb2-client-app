@@ -1,10 +1,8 @@
 class TrackingObject {
-  constructor(obj, validationFunc, operation, arg) {
-    this.value = { ...obj };
-    this.savedValue = { ...obj };
+  constructor(value, validationFunc) {
+    this.value = { ...value };
+    this.updateSavedValue();
     this.validationFunc = validationFunc;
-    this.operation = operation;
-    this.arg = arg;
   }
 
   hasChanges(k) {
@@ -12,44 +10,22 @@ class TrackingObject {
       return this.value[k] !== this.savedValue[k];
     }
 
-    return this.keys().some(key => {
-      return this.hasChanges(key);
-    });
+    return this.keys().some(key => this.hasChanges(key));
   }
 
   isInvalid(key) {
     if (key) {
       if (this.validationFunc) {
-        return this.validationFunc(key, this.value[key]);
+        return this.validationFunc(key, this.value);
       }
       return false;
     }
 
-    return (
-      this.keys()
-        .map(k => {
-          return this.isInvalid(k);
-        })
-        .find(v => {
-          return v !== false;
-        }) || false
-    );
+    return this.keys().reduce( (acc, cur) => acc ? acc : this.isInvalid(cur), false);
   }
 
   keys() {
     return Object.keys(this.value);
-  }
-
-  getDataString(keysArg) {
-    let keys = keysArg;
-    if (!keys) keys = this.keys();
-
-    const data = keys.map(k => {
-      return `${k}: ${JSON.stringify(this.value[k])}`;
-    });
-    const dataStr = `{  ${data.join(', ')} }`;
-
-    return dataStr;
   }
 
   getValidationState(key) {
@@ -66,28 +42,7 @@ class TrackingObject {
     return retval;
   }
 
-  saveChanges(graphQL, inPlace) {
-    const dataStr = this.getDataString();
-    const query = `
-      mutation{
-        ${this.operation}(
-          ${this.arg}: ${dataStr} , inPlace: ${inPlace === true}) {
-            ${this.keys().join(' ')}
-          }
-      }`;
-
-    let future = graphQL(query);
-
-    future = future.then(v => {
-      this.value = v.data[this.operation];
-      this.updateSaved();
-      return this.value;
-    });
-
-    return future;
-  }
-
-  updateSaved() {
+  updateSavedValue() {
     this.savedValue = { ...this.value };
   }
 }

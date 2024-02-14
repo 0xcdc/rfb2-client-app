@@ -1,7 +1,5 @@
 import { Button, CloseButton, Col, Dropdown, DropdownButton, ListGroup, OverlayTrigger, Row, Tooltip }
   from 'react-bootstrap';
-import { stubClient, stubHousehold } from './stubs.js';
-
 import ClientDetailForm from './ClientDetailForm.jsx';
 import { Component } from 'preact';
 import HouseholdDetailForm from './HouseholdDetailForm.jsx';
@@ -25,7 +23,8 @@ class EditDetailForm extends Component {
   static isClientInvalid(key, value) {
     switch (key) {
       case 'name':
-        if (value.length === 0) return 'Name cannot be blank';
+        if (value.deleted) return false;
+        if (value.name.length === 0) return 'Name cannot be blank';
         break;
       default:
         // ignore other keys for now
@@ -38,39 +37,30 @@ class EditDetailForm extends Component {
     return new TrackingObject(
       client,
       EditDetailForm.isClientInvalid,
-      'updateClient',
-      'client',
     );
-  }
-
-  static clientVariant(trackingObject) {
-    if (trackingObject.isInvalid()) {
-      return 'danger';
-    }
-    if (trackingObject.hasChanges()) {
-      return 'success';
-    }
-    return '';
   }
 
   constructor(props) {
     super(props);
-    this.id = props.id;
 
     this.state = {
       isSaving: false,
       key: 'household',
       dataReady: false,
-      firstSave: true,
       needGeocode: false,
       languageId: 0,
       languages: [{ name: 'English', id: 0 }],
+      household: null,
+      clients: [],
     };
   }
 
   componentDidMount() {
-    const householdQuery =
-     `{household(id: ${this.id}) {
+    const householdOperation = this.props.id == -1 ?
+      'mutation { household:createNewHousehold' :
+      `query { household(id: ${this.props.id})`;
+    const queries = [
+      `${householdOperation} {
          id
          address1
          address2
@@ -95,17 +85,10 @@ class EditDetailForm extends Component {
            birthYear
            phoneNumber
          }
-       }}`;
-
-    const lookupQueries = [
+       }}`,
       '{cities{id value:name}}',
       '{languages{id name}}',
     ];
-
-    const queries = lookupQueries;
-    if (this.id !== -1) {
-      lookupQueries.push(householdQuery);
-    }
 
     const jsonCalls = queries.map(url => graphQL(url));
 
@@ -114,10 +97,6 @@ class EditDetailForm extends Component {
       jsons.forEach(json => {
         newState = { ...newState, ...json.data };
       });
-
-      if (this.id === -1) {
-        newState.household = stubHousehold();
-      }
 
       const clients = newState.household.clients.map(c => {
         return { ...c };
@@ -128,19 +107,13 @@ class EditDetailForm extends Component {
 
       this.householdTO = new TrackingObject(
         household,
-        null,
-        'updateHousehold',
-        'household',
+        this.isHouseholdInvalid,
       );
 
-      this.clientTOs = clients.map(c => {
-        return EditDetailForm.newClientTO(c);
-      });
+      this.clientTOs = clients.map(c => EditDetailForm.newClientTO(c));
 
       newState.household = this.householdTO.value;
-      newState.clients = this.clientTOs.map(clientTO => {
-        return clientTO.value;
-      });
+      newState.clients = this.clientTOs.map(clientTO => clientTO.value);
 
       this.allTOs = [this.householdTO].concat(this.clientTOs);
 
@@ -171,20 +144,34 @@ class EditDetailForm extends Component {
   }
 
   hasChanges() {
-    return this.state.dataReady && this.allTOs.some(o => {
-      return o.hasChanges();
-    });
+    return this.state.dataReady && this.allTOs.some(o => o.hasChanges());
   }
 
-  handleNewClient = () => {
-    const newClient = stubClient(this.householdTO.value.id);
+  handleNewClient = async () => {
+    const query = `
+mutation {
+  client:createNewClient {
+    id
+    name
+    genderId
+    disabled
+    refugeeImmigrantStatus
+    ethnicityId
+    raceId
+    speaksEnglish
+    militaryStatusId
+    birthYear
+    phoneNumber
+  }
+}`;
+
+    const response = await graphQL(query);
+    const newClient = response.data.client;
     const newTO = EditDetailForm.newClientTO(newClient);
     this.clientTOs.push(newTO);
     this.allTOs.push(newTO);
     this.setState({
-      clients: this.clientTOs.map(clientTO => {
-        return clientTO.value;
-      }),
+      clients: this.clientTOs.map(clientTO => clientTO.value),
       key: newClient.id,
     });
   }
@@ -192,10 +179,10 @@ class EditDetailForm extends Component {
   handleHouseholdChange = (obj, prop, value) => {
     this.householdTO.value[prop] = value;
     // if any of the address fields that affect location have changed then
-    //   we need to recalulate latLng
+    //   we need to recalulate location
     let { needGeocode } = this.state;
     switch (prop) {
-      case 'latlng':
+      case 'location':
         needGeocode = false;
         break;
       case 'address1':
@@ -226,48 +213,21 @@ class EditDetailForm extends Component {
   }
 
   handleClientDelete = obj => {
-    const i = this.clientTOs.findIndex(c => {
-      return c.value.id === obj.id;
-    });
-    const deleteFinished = graphQL(`
-      mutation{
-        deleteClient(id:${obj.id}) {id}
-      }`);
-    deleteFinished.then(() => {
-      this.clientTOs.splice(i, 1);
-      this.setState({
-        clients: this.clientTOs.map(clientTO => {
-          return clientTO.value;
-        }),
-        key: 'household',
-      });
-    });
+    // mark the object as deleted
+    this.clientTOs.find(c => c.value.id === obj.id).value.deleted = true;
+    this.setState({ key: 'household' });
   }
 
-  saveClients(household) {
-    const householdID = household.id;
-    this.householdTO.value = household;
-    const clientSaves = this.clientTOs
-      .filter(to => {
-        return to.hasChanges();
-      })
-      .map(to => {
-        const clientTO = to;
-        clientTO.value.householdId = householdID;
-        let clientSave = clientTO.saveChanges(graphQL, true);
-        clientSave = clientSave.then(client => {
-          clientTO.value = client;
-        });
-        return clientSave;
-      });
-    return Promise.all(clientSaves);
+  handleClientRestore = obj => {
+    // mark the object as deleted
+    delete obj.deleted;
+    this.setState({ key: obj.id });
   }
 
   lookupLocation() {
     const values = Object.fromEntries(
-      ['address1', 'cityId', 'zip'].map( prop => [
-        prop, this.householdTO.value[prop]
-      ]));
+      ['address1', 'cityId', 'zip'].map( prop => [prop, this.householdTO.value[prop]])
+    );
 
     // no address1, no geocode
     if ( !values.address1 ) {
@@ -299,72 +259,59 @@ class EditDetailForm extends Component {
 
         if ( firstResult.partial_match ) {
           console.log('Partial match, ignoring');
-          return '';
+          return null;
         }
 
         const { location } = firstResult.geometry;
-        const latlng = JSON.stringify({
-          lat: location.lat(),
-          lng: location.lng(),
-        });
-        return latlng;
+        return location;
       })
       .catch( e => {
         console.log(`geocode failed with ${e}`);
-        return '';
+        return null;
       });
   }
 
-  saveChanges() {
-    let { key, firstSave, needGeocode } = this.state;
-    const selectedClientTO = this.clientTOs.find(to => to.value.id === key);
-    const isNewClient = this.householdTO.value.id === -1;
+  async saveChanges() {
+    let { needGeocode } = this.state;
+    const isNewClient = this.props.id === -1;
 
-    let netOp = Promise.resolve();
-    if (this.householdTO.hasChanges() || isNewClient || firstSave) {
-      if (needGeocode) {
-        netOp = this.lookupLocation().then( latlng => {
-          this.householdTO.value['latlng'] = latlng;
-        });
-        needGeocode = false;
-      }
-
-      netOp = netOp.then( () => this.householdTO.saveChanges(graphQL, !firstSave));
-      firstSave = false;
-    } else {
-      netOp = Promise.resolve(this.state.household);
+    if (needGeocode) {
+      this.householdTO.value.location = await this.lookupLocation();
+      needGeocode = false;
     }
+
+    const householdInput = { ...this.householdTO.value }
+    this.clientTOs = this.clientTOs.filter( to => !to.value.deleted);
+    householdInput.clients = this.clientTOs
+      .map( cTO => ({ ...cTO.value }))
+
+    const query = `
+mutation saveHouseholdChanges($household: HouseholdInput!){
+  household:updateHousehold(household: $household) { id }
+}`;
+
+    await graphQL(query, { household: householdInput });
+
+    this.allTOs.forEach( to => to.updateSavedValue());
 
     if (isNewClient) {
-      netOp = netOp.then( household => graphQL(`
-          mutation{recordVisit(
-            householdId: ${household.id}){date}}
-        `).then( () => household));
+      const query = `
+mutation{recordVisit(
+  householdId: ${householdInput.id}) {
+    date
+  }
+}`;
+
+      await graphQL(query);
     }
 
-    netOp = netOp.then(household => {
-      return this.saveClients(household);
-    });
+    const newState = {
+      isSaving: false,
+      needGeocode,
+      clients: this.clientTOs.map( to => to.value),
+    };
 
-    netOp.finally(() => {
-      // if we saved a new client we need to update the selected key to match it's new id
-      if (selectedClientTO) {
-        key = selectedClientTO.value.id;
-      }
-
-      const newState = {
-        household: this.householdTO.value,
-        isSaving: false,
-        key,
-        clients: this.clientTOs.map(clientTO => {
-          return clientTO.value;
-        }),
-        firstSave,
-        needGeocode,
-      };
-
-      this.setState(newState);
-    });
+    this.setState(newState);
   }
 
   handleSave = () => {
@@ -380,33 +327,26 @@ class EditDetailForm extends Component {
     });
   }
 
-  isFormInvalid() {
-    return this.state.dataReady && (
-      this.isHouseholdInvalid() ||
-      this.allTOs
-        .map(o => {
-          return o.isInvalid();
-        })
-        .find(v => v !== false) ||
-      false
-    );
+  isFormInvalid = () => {
+    return this.state.dataReady &&
+      this.allTOs.reduce( (acc, cur) => acc ? acc : cur.isInvalid(), false);
   }
 
-  isHouseholdInvalid() {
-    if (this.state.dataReady && this.clientTOs.length === 0) {
+  isHouseholdInvalid = () => {
+    if (this.state.dataReady && this.clientTOs.filter( to => !to.value.deleted).length === 0) {
       return 'You must have at least one client';
     }
     return false;
   }
 
-  householdVariant() {
+  variant(trackingObject) {
     if (!this.state.dataReady) {
       return '';
     }
-    if (this.isHouseholdInvalid() || this.householdTO.isInvalid()) {
+    if (trackingObject.isInvalid()) {
       return 'danger';
     }
-    if (this.householdTO.hasChanges()) {
+    if (trackingObject.hasChanges()) {
       return 'success';
     }
     return '';
@@ -464,26 +404,25 @@ class EditDetailForm extends Component {
           key="household"
           eventKey="household"
           action
-          onClick={() => {
-            this.handleTabSelect('household');
-          }}
-          variant={this.householdVariant()}
+          onClick={() => this.handleTabSelect('household') }
+          variant={this.variant(this.householdTO)}
         >
           Household
         </ListGroup.Item>
         {this.clientTOs.map(to => {
           const c = to.value;
           let label = c.name;
+          if (c.deleted) {
+            label = <>Deleted<i class="bi bi-arrow-counterclockwise" /></>;
+          }
           if (label.length < 1) label = 'Unnamed Client';
           return (
             <ListGroup.Item
               action
               key={c.id}
               eventKey={c.id}
-              onClick={() => {
-                this.handleTabSelect(c.id);
-              }}
-              variant={EditDetailForm.clientVariant(to)}
+              onClick={() => c.deleted ? this.handleClientRestore(c) : this.handleTabSelect(c.id) }
+              variant={this.variant(to)}
             >
               {label}
             </ListGroup.Item>
@@ -494,9 +433,6 @@ class EditDetailForm extends Component {
           variant="secondary"
           onClick={this.handleNewClient}
           key="new client button"
-          disabled={this.state.clients.some(c => {
-            return c.id === -1;
-          })}
         >
           <OverlayTrigger delay={250} position="auto" overlay={<Tooltip>Add a household member</Tooltip>}>
             <i class="bi bi-person-plus-fill" />
@@ -512,17 +448,13 @@ class EditDetailForm extends Component {
         <HouseholdDetailForm
           household={this.state.household}
           onChange={this.handleHouseholdChange}
-          getValidationState={key => {
-            return this.householdTO.getValidationState(key);
-          }}
+          getValidationState={key => this.householdTO.getValidationState(key)}
           cities={this.state.cities}
           languageId={this.state.languageId}
         />
       );
     } else {
-      const clientTO = this.clientTOs.find(to => {
-        return to.value.id === activeKey;
-      });
+      const clientTO = this.clientTOs.find(to => to.value.id === activeKey );
       const client = clientTO.value;
 
       mainPane = (
@@ -530,9 +462,7 @@ class EditDetailForm extends Component {
           client={client}
           onChange={this.handleClientChange}
           onDelete={this.handleClientDelete}
-          getValidationState={key => {
-            return clientTO.getValidationState(key);
-          }}
+          getValidationState={key => clientTO.getValidationState(key)}
           languageId={this.state.languageId}
         />
       );
