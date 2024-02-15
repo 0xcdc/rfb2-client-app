@@ -321,6 +321,12 @@ mutation{recordVisit(
     }
   }
 
+  handleTimer = () => {
+    if (!this.state.clients.some( c => c.deleted)) {
+      this.handleSave();
+    }
+  }
+
   handleTabSelect = key => {
     this.setState({
       key,
@@ -470,7 +476,7 @@ mutation{recordVisit(
 
     return (
       <div>
-        <IdleTimer timeout={3000} onIdle={this.handleSave} />
+        <IdleTimer timeout={3000} onIdle={this.handleTimer} />
         {headerInfo}
         <Row>
           <Col sm="2">{selectionColumn}</Col>
