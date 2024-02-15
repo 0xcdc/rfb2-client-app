@@ -20,7 +20,7 @@ const colorMap = {};
 
 async function getCityCenter() {
   const query = `{ cities { position:location { lat lng } title:name } }`;
-  const json = await graphQL(query, 'cities');
+  const json = await graphQL(query);
   const { cities } = json.data;
   const cityCenter = [
     {

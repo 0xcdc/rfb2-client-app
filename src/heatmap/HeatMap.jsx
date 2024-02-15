@@ -101,13 +101,13 @@ export function initHeatMap(allHouseholds, mapApi) {
 
 export default function HeatMap() {
   const [mapApi, setMapApi] = useState(null);
-  const [allHouseholds, setAllHouseholds] = useState([]);
+  const [allHouseholds, setAllHouseholds] = useState(null);
 
   useEffect( () => {
-    if (allHouseholds.length == 0) {
+    if (allHouseholds == null) {
       const query = `{households(ids: []) { location { lat lng } lastVisit address1 city{name} }}`;
 
-      graphQL(query, 'households').then( json => {
+      graphQL(query).then( json => {
         const { households } = json.data;
         initMap().then( mapApi => {
           setAllHouseholds(households);
