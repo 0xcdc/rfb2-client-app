@@ -231,7 +231,7 @@ mutation {
 
     // no address1, no geocode
     if ( !values.address1 ) {
-      return Promise.resolve('');
+      return Promise.resolve(null);
     }
 
     if (values.cityId != 0) {
