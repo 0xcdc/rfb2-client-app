@@ -92,14 +92,40 @@ class BellevueReport extends Component {
   }
 
   async loadData(year) {
-    const query =
-      `{householdVisitsForYear(year: ${year}) {
-         cityId date homeless householdId incomeLevelId
-         clients { age disabled genderId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish }
-       }}`;
+    const queries = [
+      `{visitsForYear(year: ${year}) { date householdId }}`,
+      `{historicalHouseholds {
+          cityId startDate endDate id incomeLevelId address1 clients {
+            birthYear disabled genderId militaryStatusId raceId refugeeImmigrantStatus speaksEnglish
+          }
+        }
+       }`
+    ];
+    const requests = queries.map( q => graphQL(q));
+    const results = await Promise.all(requests);
 
-    const results = await graphQL(query);
-    let { householdVisitsForYear } = results.data;
+    const visits = results[0].data.visitsForYear;
+    const households = results[1].data.historicalHouseholds;
+    const householdMap = {};
+    households.forEach( h => {
+      householdMap[h.id] ??= [];
+      householdMap[h.id].push(h);
+    });
+
+    // we want to augment the each visit with the associated household data
+    let householdVisitsForYear = visits.map( v => {
+      const { date, householdId } = v;
+      const household = householdMap[householdId].find( h => date >= h.startDate && date < h.endDate);
+      const { id, endDate, startDate, address1, ...householdData } = household;
+      const homeless = address1 == '' ? 1 : 0;
+      return {
+        date,
+        householdId,
+        homeless,
+        ...householdData,
+      };
+    });
+
 
     // build an object that maps householdId => first date the household visited
     const firstVisitAccumulator = (acc, cur) => {
@@ -113,12 +139,26 @@ class BellevueReport extends Component {
     // first push the household data down into the client visits
     const clientVisitsForYear = householdVisitsForYear
       .flatMap( hv => {
-        const { clients, ...householdData } = hv;
+        const { clients, address1, ...householdData } = hv;
 
-        return clients.map( c => ({
-          ...c,
-          ...householdData,
-        }));
+        return clients.map( c => {
+          // we also need to convert birthYear into age @ visit
+          const birthYear = parseInt(c.birthYear, 10);
+          const visitYear = DateTime.fromISO(hv.date).year;
+
+          const age =
+            isNaN(birthYear) ||
+            birthYear < 1900 ||
+            birthYear > visitYear ?
+              null :
+              visitYear - birthYear;
+
+          return {
+            ...c,
+            ...householdData,
+            age,
+          };
+        });
       });
 
     // now strip off the clients from the households
