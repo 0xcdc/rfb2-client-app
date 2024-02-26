@@ -146,14 +146,46 @@ class Report extends Component {
   }
 
   async loadData(year) {
-    const results = await graphQL(`
-      {householdVisitsForYear(year: ${year}) {cityId date householdId clients {age}}}`);
+    const queries = [
+      `{visitsForYear(year: ${year}) { date householdId }}`,
+      `{historicalHouseholds {cityId startDate endDate id clients { birthYear }}}`
+    ];
+    const requests = queries.map( q => graphQL(q));
+    const results = await Promise.all(requests);
 
-    const { householdVisitsForYear } = results.data;
-    const clientVisits = householdVisitsForYear.flatMap( hv => {
+    const visits = results[0].data.visitsForYear;
+    const households = results[1].data.historicalHouseholds;
+    const householdMap = {};
+    households.forEach( h => {
+      householdMap[h.id] ??= [];
+      householdMap[h.id].push(h);
+    });
+
+    // we want to augment the each visit with the associated household data
+    const householdVisits = visits.map( v => {
+      const { date, householdId } = v;
+      const household = householdMap[householdId].find( h => date >= h.startDate && date < h.endDate);
+      const { cityId, clients } = household;
+      return {
+        cityId,
+        date,
+        householdId,
+        clients
+      };
+    });
+
+    const clientVisits = householdVisits.flatMap( hv => {
       const { clients, ...householdData } = hv;
       return clients.map( c => {
-        const { age } = c;
+        const birthYear = parseInt(c.birthYear, 10);
+        const visitYear = DateTime.fromISO(hv.date).year;
+
+        const age =
+          isNaN(birthYear) ||
+          birthYear < 1900 ||
+          birthYear > visitYear ?
+            null :
+            visitYear - birthYear;
         return {
           age,
           ...householdData,
@@ -169,7 +201,7 @@ class Report extends Component {
     };
 
     // build an object that maps householdId => first date the household visited
-    const firstVisitForHousehold = householdVisitsForYear.reduce( firstVisitAccumulator, {} );
+    const firstVisitForHousehold = householdVisits.reduce( firstVisitAccumulator, {} );
 
     return [clientVisits, firstVisitForHousehold];
   }
