@@ -33,11 +33,12 @@
         const { set, languageId, tag } = row;
         accumulator[set] ||= {};
         if (set == 'prompt') {
-          // prompts are singletons so we just create a languageId: translation mapping
-          accumulator[set][tag] ||= {};
+          // prompt has distinct tags for each different prompt
+          accumulator[set][tag] ||= [];
+          console.assert(languageId == accumulator[set][tag].length);
           accumulator[set][tag][languageId] = row;
         } else {
-          // everything else can have multiple values so we need an array of translations
+          // everything else is a set of values
           accumulator[set][languageId] ||= [];
           accumulator[set][languageId].push(row);
         }

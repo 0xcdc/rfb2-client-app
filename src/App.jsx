@@ -12,6 +12,7 @@ import Home from './Home.jsx';
 import Household from './Household.jsx';
 import Layout from './Layout.jsx';
 import Report from './Report.jsx';
+import SelfService from './SelfService.jsx';
 import Translate from './Translate.jsx';
 
 const router = createBrowserRouter(
@@ -23,6 +24,7 @@ const router = createBrowserRouter(
         <Route path='EOYReport' element={ <BellevueReport /> } />
         <Route path='Translate' element={ <Translate /> } />
         <Route path='Data' element={ <Data /> } />
+        <Route path='/selfservice' element={ <SelfService/> } />
         <Route path='/' element={ <Home />} />
       </Route>
       <Route path='/heatmap/*' element={ <HeatMap /> } />

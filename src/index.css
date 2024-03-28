@@ -62,6 +62,14 @@
   background-color: purple;
 }
 
+#self-service {
+  background-color: lightBlue;
+}
+
+#self-service-welcome {
+  font-size: 150%;
+}
+
 /*
 vite stuff we might want later?
 :root {

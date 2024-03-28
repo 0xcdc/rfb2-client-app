@@ -11,9 +11,32 @@ function getTag(props) {
 function getLabel(props) {
   const tag = getTag(props);
   const { languageId } = props;
+  console.assert(languageId >= 0);
   const promptTranslations = window.translations.prompt[tag];
   const translation = promptTranslations[languageId] ?? promptTranslations[English];
   return translation.value;
+}
+
+export function SimpleFormLabel(props) {
+  return (
+    <Form.Label
+      column sm={2}
+      style={props.style}
+      onClick={e => {
+        if (e.ctrlKey) {
+          const tag = getTag(props);
+          const { languageId } = props;
+          const { id } = window.translations.prompt[tag][English];
+          const set='prompt';
+
+          const url = `/translate?set=${set}&id=${id}&languageId=${languageId}`;
+          navigate(url);
+        }
+      }}
+    >
+      {getLabel(props)}
+    </Form.Label>
+  );
 }
 
 export function SimpleFormGroup(props) {
@@ -27,23 +50,7 @@ export function SimpleFormGroup(props) {
 
   return (
     <Form.Group as={Row} className="mb-3" controlId={`formHorizontal_${props.group}`} >
-      <Form.Label
-        column sm={2}
-        style={style}
-        onClick={e => {
-          if (e.ctrlKey) {
-            const tag = getTag(props);
-            const { languageId } = props;
-            const { id } = window.translations.prompt[tag][English];
-            const set='prompt';
-
-            const url = `/translate?set=${set}&id=${id}&languageId=${languageId}`;
-            navigate(url);
-          }
-        }}
-      >
-        {getLabel(props)}
-      </Form.Label>
+      <SimpleFormLabel {...props} style={style} />
       <Col sm={10}>
         {props.children}
       </Col>
