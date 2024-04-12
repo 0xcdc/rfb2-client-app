@@ -6,6 +6,11 @@
   font-size: 150%;
 }
 
+#SelfServiceLayout {
+  font-size: 150%;
+  width: 800px;
+}
+
 .selectionColumn {
   width: 32px;
 }
@@ -62,11 +67,7 @@
   background-color: purple;
 }
 
-#self-service {
-  background-color: lightBlue;
-}
-
-#self-service-welcome {
+#self-service-header {
   font-size: 150%;
 }
 

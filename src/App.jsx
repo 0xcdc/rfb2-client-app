@@ -24,9 +24,9 @@ const router = createBrowserRouter(
         <Route path='EOYReport' element={ <BellevueReport /> } />
         <Route path='Translate' element={ <Translate /> } />
         <Route path='Data' element={ <Data /> } />
-        <Route path='/selfservice' element={ <SelfService/> } />
         <Route path='/' element={ <Home />} />
       </Route>
+      <Route path='/selfservice' element={ <SelfService /> } />
       <Route path='/heatmap/*' element={ <HeatMap /> } />
     </>
   )

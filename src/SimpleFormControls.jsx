@@ -18,6 +18,7 @@ function getLabel(props) {
 }
 
 export function SimpleFormLabel(props) {
+  const navigate = useNavigate();
   return (
     <Form.Label
       column sm={2}
@@ -40,7 +41,6 @@ export function SimpleFormLabel(props) {
 }
 
 export function SimpleFormGroup(props) {
-  const navigate = useNavigate();
   const style = {};
   if (props.getValidationState(props.group) === 'error') {
     style.color = 'red';
