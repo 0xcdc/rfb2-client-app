@@ -71,6 +71,16 @@
   font-size: 150%;
 }
 
+.yearNumbers {
+  font-size: 40px;
+  text-align: center;
+}
+
+.yearPlusMinus {
+  color: blue;
+  cursor: pointer;
+}
+
 /*
 vite stuff we might want later?
 :root {
