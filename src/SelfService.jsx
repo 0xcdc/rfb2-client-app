@@ -1,5 +1,5 @@
 import { Button, Col, Container, Form, FormControl, ProgressBar, Row } from 'react-bootstrap';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import graphQL from './graphQL.js';
 import { useImmer } from "use-immer";
 
@@ -20,6 +20,18 @@ export default function SelfService() {
   const addressField = useRef(null);
 
   let getChoicesJsx = null;
+
+  const alertUser = e => {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', alertUser)
+    return () => {
+      window.removeEventListener('beforeunload', alertUser)
+    }
+  }, []);
 
   function currentClient() {
     return household.clients[currentClientIndex];
