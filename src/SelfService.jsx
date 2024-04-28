@@ -22,14 +22,15 @@ export default function SelfService() {
   let getChoicesJsx = null;
 
   const alertUser = e => {
-    e.preventDefault()
-    e.returnValue = ''
+    e.preventDefault();
+    e.returnValue = true;
+    return true;
   }
 
   useEffect(() => {
-    window.addEventListener('beforeunload', alertUser)
+    window.addEventListener('beforeunload', alertUser);
     return () => {
-      window.removeEventListener('beforeunload', alertUser)
+      window.removeEventListener('beforeunload', alertUser);
     }
   }, []);
 
