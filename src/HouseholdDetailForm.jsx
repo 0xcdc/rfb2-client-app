@@ -10,11 +10,14 @@ import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
 export default function HouseholdDetailForm(props) {
   const address1 = useRef(null);
 
-  useEffect(() => addGoogleAddressAutoComplete(
-    address1,
-    props.cities,
-    (name, value) => props.onChange(props.household, name, value),
-  ));
+  const { cities, household, onChange } = props;
+
+  useEffect(() => {
+    addGoogleAddressAutoComplete(
+      address1,
+      cities,
+      changes => onChange(household, 'addressAutoComplete', changes))
+  }, [cities, onChange, household]);
 
   return (
     <Form>

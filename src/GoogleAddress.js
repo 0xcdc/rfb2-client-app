@@ -14,7 +14,7 @@ export function addGoogleAddressAutoComplete(ref, cities, onChange) {
 
   const autocomplete = new Autocomplete(
     ref.current, {
-      componentRestrictions: { country: ["us", "ca"] },
+      componentRestrictions: { country: ["us"] },
       fields: ["address_components", "geometry"],
       types: ["address"],
       bounds: new LatLngBounds(sw, ne),
@@ -24,10 +24,10 @@ export function addGoogleAddressAutoComplete(ref, cities, onChange) {
   function fillInAddress() {
     const place = autocomplete.getPlace();
 
-    let addressline = "";
-    let addressline2 = "";
+    let address1= "";
+    let address2 = "";
     let locality = "";
-    let postcode = "";
+    let zip = "";
 
     // Get each component of the address from the place details,
     // and then fill-in the corresponding field on the form.
@@ -46,27 +46,27 @@ export function addGoogleAddressAutoComplete(ref, cities, onChange) {
 
         switch (componentType) {
           case "street_number": {
-            addressline = `${component.long_name} ${addressline}`;
+            address1 = `${component.long_name} ${address1}`;
             break;
           }
 
           case "route": {
-            addressline += component.short_name;
+            address1 += component.short_name;
             break;
           }
 
           case "postal_code": {
-            postcode = `${component.long_name}${postcode}`;
+            zip = `${component.long_name}${zip}`;
             break;
           }
 
           case "postal_code_suffix": {
-            postcode = `${postcode}-${component.long_name}`;
+            zip = `${zip}-${component.long_name}`;
             break;
           }
 
           case "subpremise": {
-            addressline2 = component.long_name;
+            address2 = component.long_name;
             break;
           }
 
@@ -76,21 +76,20 @@ export function addGoogleAddressAutoComplete(ref, cities, onChange) {
         }
       }
 
-      const city = cities.find( c => c.value == locality);
-      if (city) {
-        onChange("cityId", city.id);
-      } else {
-        onChange("cityId", 0);
+      const cityId = cities.find( c => c.value == locality)?.id ?? 0;
+      const { location } = place.geometry;
+      const changes = {
+        address1,
+        cityId,
+        location,
+        zip,
+      };
+
+      if (address2) {
+        changes.address2 = address2;
       }
 
-      onChange("address1", addressline);
-      if (addressline2) onChange("address2", addressline2);
-      onChange("zip", postcode);
-
-
-      const { location } = place.geometry;
-
-      onChange("location", location);
+      onChange(changes);
     }
   }
 

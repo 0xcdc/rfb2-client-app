@@ -1,5 +1,6 @@
 import { Button, Col, Container, Form, FormControl, ProgressBar, Row } from 'react-bootstrap';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
 import graphQL from './graphQL.js';
 import { useImmer } from "use-immer";
 
@@ -14,7 +15,6 @@ export default function SelfService() {
   const [language, setLanguage] = useState(English);
   const [stepStack, setStepStack] = useState([{ step: 'welcomePage' }]);
   const [cities, setCities] = useState(null);
-  const [address, setAddress] = useState('');
   const [household, setHousehold] = useImmer(null);
   const [currentClientIndex, setCurrentClientIndex] = useState(-1);
   const addressField = useRef(null);
@@ -33,6 +33,28 @@ export default function SelfService() {
       window.removeEventListener('beforeunload', alertUser);
     }
   }, []);
+
+  function getAddressString() {
+    if (household == null) return "";
+    if (household.address1 == "") return "";
+    const cityName = cities.find( c=> c.id == household.cityId)?.value ?? "";
+    const newAddress = `${household.address1} ${household.address2}, ${cityName} ${household.zip}`;
+    return newAddress;
+  }
+
+  function setHouseholdAttribute(keyPair) {
+    setHousehold(draft => {
+      Object.keys(keyPair).forEach( key => {
+        draft[key] = keyPair[key];
+      });
+    });
+  }
+
+  useEffect(() => {
+    if (addressField.current != null && cities != null) {
+      addGoogleAddressAutoComplete(addressField, cities, changes => setHouseholdAttribute(changes));
+    }
+  });
 
   function currentClient() {
     return household.clients[currentClientIndex];
@@ -117,14 +139,6 @@ mutation {
     return translation.value;
   }
 
-  const setHouseholdAttribute = keyPair => {
-    setHousehold(draft => {
-      Object.keys(keyPair).forEach( key => {
-        draft[key] = keyPair[key];
-      });
-    });
-  }
-
   const setClientAttribute = keyPair => {
     setHousehold( draft => {
       const client = draft.clients[currentClientIndex];
@@ -182,20 +196,20 @@ mutation {
         <>
           <FormControl
             ref={addressField}
-            onChange={e => setAddress(e.target.value)}
             autofocus
-            value={address} />
+            autocomplete="off"
+            value={getAddressString()}
+          />
           <Button
             onClick={() => {
-              dispatch(addressField.current.value);
+              dispatch();
             }}
-            disabled={addressField.current == null || (addressField.current.value == '')}>
+            disabled={household.address1 == ""}>
               Continue
           </Button>
         </>
       ),
-      onClick: value => {
-        setHouseholdAttribute({ address1: value });
+      onClick: () => {
         return 'incomePage';
       },
       progress: 50,
@@ -219,7 +233,9 @@ mutation {
             key='nameControl'
             onInput={e => setClientAttribute({ name: e.target.value })}
             autofocus
-            value={currentClient().name} />
+            value={currentClient().name}
+            autocomplete="off"
+          />
           <Button
             onClick={() => dispatch(currentClient().name) }
             disabled={ currentClient().name == '' }>
@@ -330,6 +346,7 @@ mutation {
             key='phoneControl'
             onChange={e => setClientAttribute({ phone: e.target.value })}
             autofocus
+            autocomplete="off"
             value={currentClient().phone} />
           <Button
             onClick={() => {

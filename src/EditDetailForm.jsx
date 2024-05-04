@@ -177,19 +177,26 @@ mutation {
   }
 
   handleHouseholdChange = (obj, prop, value) => {
-    this.householdTO.value[prop] = value;
-    // if any of the address fields that affect location have changed then
-    //   we need to recalulate location
     let { needGeocode } = this.state;
-    switch (prop) {
-      case 'location':
-        needGeocode = false;
-        break;
-      case 'address1':
-      case 'cityId':
-      case 'zip':
-        needGeocode = true;
-        break;
+    if (prop == "addressAutoComplete") {
+      Object.keys(value).forEach( key => {
+        this.householdTO.value[key] = value[key];
+      });
+      needGeocode = false;
+    } else {
+      this.householdTO.value[prop] = value;
+      // if any of the address fields that affect location have changed then
+      //   we need to recalulate location
+      switch (prop) {
+        case 'location':
+          needGeocode = false;
+          break;
+        case 'address1':
+        case 'cityId':
+        case 'zip':
+          needGeocode = true;
+          break;
+      }
     }
 
     this.setState({
