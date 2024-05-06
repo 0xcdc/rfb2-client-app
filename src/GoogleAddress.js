@@ -81,7 +81,10 @@ export function addGoogleAddressAutoComplete(ref, cities, onChange) {
       const changes = {
         address1,
         cityId,
-        location,
+        location: {
+          lat: location.lat(),
+          lng: location.lng(),
+        },
         zip,
       };
 
