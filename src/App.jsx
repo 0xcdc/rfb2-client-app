@@ -13,6 +13,7 @@ import Household from './Household.jsx';
 import Layout from './Layout.jsx';
 import Report from './Report.jsx';
 import SelfService from './SelfService.jsx';
+import SelfServiceSummary from './SelfServiceSummary.jsx';
 import Translate from './Translate.jsx';
 
 const router = createBrowserRouter(
@@ -27,6 +28,7 @@ const router = createBrowserRouter(
         <Route path='/' element={ <Home />} />
       </Route>
       <Route path='/selfservice' element={ <SelfService /> } />
+      <Route path='/volunteer-review' element={ <SelfServiceSummary /> } />
       <Route path='/heatmap/*' element={ <HeatMap /> } />
     </>
   )
