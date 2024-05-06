@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
 import graphQL from './graphQL.js';
 import { useImmer } from "use-immer";
+import { useLongPress } from 'use-long-press';
+import { useNavigate } from "react-router-dom";
 
 function cancelPopup(e) {
   e.preventDefault();
@@ -12,12 +14,22 @@ const English = 0;
 const ThisYear = new Date().getFullYear();
 
 export default function SelfService() {
+  const navigate = useNavigate();
   const [language, setLanguage] = useState(English);
   const [stepStack, setStepStack] = useState([{ step: 'welcomePage' }]);
   const [cities, setCities] = useState(null);
   const [household, setHousehold] = useImmer(null);
   const [currentClientIndex, setCurrentClientIndex] = useState(-1);
   const addressField = useRef(null);
+  const volunteerLongPress = useLongPress(
+    () => {
+      navigate("/volunteer-review", { state: { household } });
+    },
+    {
+      threshold: 1500,
+    },
+  );
+
 
   let getChoicesJsx = null;
 
@@ -344,13 +356,13 @@ mutation {
         <>
           <FormControl
             key='phoneControl'
-            onChange={e => setClientAttribute({ phone: e.target.value })}
+            onChange={e => setClientAttribute({ phoneNumber: e.target.value })}
             autofocus
             autocomplete="off"
-            value={currentClient().phone} />
+            value={currentClient().phoneNumber} />
           <Button
             onClick={() => {
-              dispatch(currentClient().phone)
+              dispatch(currentClient().phoneNumber)
             }}>
               Continue
           </Button>
@@ -388,7 +400,9 @@ mutation {
       },
     },
     finishedPage: {
-      getChoices: () => [],
+      jsx: () => {
+        return (<div { ...volunteerLongPress() } style={{ height: "400px", width: "100%" }} />);
+      },
       onclick: () => ({}),
     },
   };
