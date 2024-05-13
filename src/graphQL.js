@@ -1,10 +1,13 @@
-/*
-
-Async graphQL funciton and error handling code we might add in later if it seems helpful
-
 class HTTPResponseError extends Error {
   constructor(response) {
     super(`HTTP Error Response: ${response.status} ${response.statusText}`);
+    this.response = response;
+  }
+}
+
+class GraphQLError extends Error {
+  constructor(response, message) {
+    super(`GraphQL Error Response: ${message}`);
     this.response = response;
   }
 }
@@ -18,37 +21,11 @@ const checkStatus = response => {
   }
 }
 
-async function graphQL(query, key) {
-  const url = `/graphQL`;
-  const body = JSON.stringify({ query });
-
-  let response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body,
-  });
-  try {
-    checkStatus(response);
-    let json = await response.json();
-    return json.data[key];
-  } catch (error) {
-    console.error(error);
-
-    const errorBody = await error.response.text();
-    console.error(`Error body: ${errorBody}`);
-  }
-}
-
-*/
-
-export default function graphQL(query, variables) {
+export default async function graphQL(query, variables) {
   const url = '/graphQL';
   const body = JSON.stringify({ query, variables });
 
-  return fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -56,5 +33,16 @@ export default function graphQL(query, variables) {
     },
     body,
     mode: 'cors',
-  }).then(resp => resp.json());
+  });
+  try {
+    checkStatus(response);
+    const json = await response.json();
+    if (json.errors) {
+      throw new GraphQLError(response, json.errors[0].message);
+    }
+    return json;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }

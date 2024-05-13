@@ -81,10 +81,16 @@ mutation saveHouseholdChanges($household: HouseholdInput!){
   household:updateHousehold(household: $household) { id }
 }`;
 
-    await Promise.all([
-      graphQL(query, { household: householdInput }),
-      delayPromise(1000),
-    ]);
+    try {
+      await Promise.all([
+        graphQL(query, { household: householdInput }),
+        delayPromise(1000),
+      ]);
+    } catch (e) {
+      alert(`unable to save client - please ask the client to fill out paperwork\n ${e}`);
+      return;
+    }
+
     setProgress(50);
     setHeading('Checking in...');
 
@@ -95,10 +101,16 @@ mutation{recordVisit(
   }
 }`;
 
-    await Promise.all([
-      graphQL(query),
-      delayPromise(1000),
-    ]);
+    try {
+      await Promise.all([
+        graphQL(query),
+        delayPromise(1000),
+      ]);
+    } catch (e) {
+      alert(`unable to check in client - please check the client in manually`);
+      return;
+    }
+
 
     setProgress(100);
     setHeading('Done!');

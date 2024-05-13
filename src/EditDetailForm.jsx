@@ -297,7 +297,11 @@ mutation saveHouseholdChanges($household: HouseholdInput!){
   household:updateHousehold(household: $household) { id }
 }`;
 
-    await graphQL(query, { household: householdInput });
+    try {
+      await graphQL(query, { household: householdInput });
+    } catch (e) {
+      alert(`unable to save client: ${e}`);
+    }
 
     this.allTOs.forEach( to => to.updateSavedValue());
 
