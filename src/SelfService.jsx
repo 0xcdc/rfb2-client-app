@@ -1,9 +1,8 @@
-import { Button, Col, Container, Form, FormControl, ProgressBar, Row } from 'react-bootstrap';
+import { Accordion, Button, Col, Container, Form, FormControl, ProgressBar, Row, Stack } from 'react-bootstrap';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
 import graphQL from './graphQL.js';
 import { useImmer } from "use-immer";
-import { useLongPress } from 'use-long-press';
 import { useNavigate } from "react-router-dom";
 
 function cancelPopup(e) {
@@ -19,17 +18,18 @@ export default function SelfService() {
   const [stepStack, setStepStack] = useState([{ step: 'welcomePage' }]);
   const [cities, setCities] = useState(null);
   const [household, setHousehold] = useImmer(null);
+  const [volunteerCode, setVolunteerCode] = useState("0000");
   const [currentClientIndex, setCurrentClientIndex] = useState(-1);
   const addressField = useRef(null);
-  const volunteerLongPress = useLongPress(
-    () => {
-      navigate("/volunteer-review", { state: { household } });
-    },
-    {
-      threshold: 1500,
-    },
-  );
 
+  const volunteerCodePress = value => {
+    const newCode = `${volunteerCode}${value}`.slice(1, 5);
+    if (newCode == "4578") {
+      navigate("/volunteer-review", { state: { household } });
+    } else {
+      setVolunteerCode(newCode);
+    }
+  }
 
   let getChoicesJsx = null;
 
@@ -162,17 +162,6 @@ mutation {
 
   const yesNos = getTranslations(['yes_no']).filter(c => c.id != -1);
 
-  function yearDigits(year) {
-    const retVal = [];
-    while (year > 0) {
-      const digit = year % 10;
-      retVal.push(digit);
-      year -= digit;
-      year /= 10;
-    }
-    return retVal.reverse();
-  }
-
   const BackButton = (
     <Button class='backButton'
       onClick={() => {
@@ -274,7 +263,7 @@ mutation {
               </Col>
             </Row>
             <Row >
-              { yearDigits(birthYear).map( (d, i) => (
+              { Array.from(birthYear.toString()).map( (d, i) => (
                 <Col key={i} sm={1}>
                   {d}
                 </Col>
@@ -401,7 +390,54 @@ mutation {
     },
     finishedPage: {
       jsx: () => {
-        return (<div { ...volunteerLongPress() } style={{ height: "400px", width: "100%" }} />);
+        const rows = [0, 1, 2];
+        const columns = [0, 1, 2];
+        const nRows = rows.length;
+        return (
+          <>
+            <Accordion>
+              <Accordion.Item eventKey="1">
+                <Accordion.Header>
+                  Volunteer press to open
+                </Accordion.Header>
+                <Accordion.Body>
+                  <Row >
+                    {
+                      Array.from(volunteerCode).map( (d, i) => (
+                        <Col className='volunteerNumbers' key={i} sm={1}>
+                          {d}
+                        </Col>
+                      ))
+                    }
+                  </Row>
+                  <Stack gap={3} direction="horizontal" className="mx-auto">
+                    {
+                      columns.map( c => {
+                        return (
+                          <Stack key={c} gap={3} >
+                            {
+                              rows.map( r => {
+                                const index = c * nRows + r + 1;
+                                return (
+                                  <Button key={r}
+                                    className='selfServiceButton'
+                                    onClick={() => volunteerCodePress(index)}
+                                  >
+                                    {index}
+                                  </Button>
+                                );
+                              })
+                            }
+                          </Stack>
+                        );
+                      })
+                    }
+                  </Stack>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
+          </>
+        );
       },
       onclick: () => ({}),
     },
@@ -448,34 +484,36 @@ mutation {
       [3, Math.floor(choices.length / 3) + 1];
 
     const columns = Array.from({ length: nColumns }, (v, i) => i);
-    const rows = Array.from({ length: Math.floor(choices.length / nColumns) }, (v, i) => i);
+    const rows = Array.from({ length: Math.ceil(choices.length / nColumns) }, (v, i) => i);
+
 
     return (
-      <>
-        { rows.map( r => (
-          <Row key={r}>
-            { columns.map( c => {
-              const index = c * nRows + r;
-              const choice = index < choices.length ? choices[index] : null;
-              const choiceButton = choice ?
-                <Button
-                  onClick={() => dispatch(choice.id)}
-                  variant={ selectedId == choice.id ? "info" : "primary" }
-                >
-                  {choice.value}
-                </Button> :
-                <></>;
-
-              return (
-                <Col key={c}>
-                  {choiceButton}
-                </Col>
-              );
-            })}
-          </Row>
-        ))
+      <Stack gap={3} direction="horizontal" className="mx-auto">
+        {
+          columns.map( c => {
+            return (
+              <Stack key={c} gap={3} >
+                {
+                  rows.map( r => {
+                    const index = c * nRows + r;
+                    const choice = index < choices.length ? choices[index] : null;
+                    const choiceButton = choice ?
+                      <Button
+                        className='selfServiceButton'
+                        onClick={() => dispatch(choice.id)}
+                        variant={ selectedId == choice.id ? "info" : "primary" }
+                      >
+                        {choice.value}
+                      </Button> :
+                      <></>;
+                    return choiceButton;
+                  })
+                }
+              </Stack>
+            );
+          })
         }
-      </>
+      </Stack>
     );
   }
 

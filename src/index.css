@@ -5,13 +5,20 @@
 #Layout {
   font-size: 150%;
 }
+
 #VolunteerReviewLayout {
   font-size: 150%;
 }
 
 #SelfServiceLayout {
-  font-size: 150%;
   width: 800px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.selfServiceButton {
+  font-size: 125%;
+  font-weight: bold;
 }
 
 .selectionColumn {
@@ -77,6 +84,12 @@
 .yearNumbers {
   font-size: 40px;
   text-align: center;
+}
+
+.volunteerNumbers {
+  font-size: 40px;
+  text-align: center;
+  text-decoration: underline;
 }
 
 .yearPlusMinus {
