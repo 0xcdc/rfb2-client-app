@@ -33,5 +33,6 @@ module.exports = {
     "prefer-destructuring": "error",
     "sort-imports": "error",
     "no-use-before-define": "error",
+    "no-else-return": 0,
   },
 };
