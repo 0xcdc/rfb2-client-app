@@ -206,7 +206,7 @@ mutation {
               dispatch();
             }}
             disabled={household.address1 == ""}>
-              Continue
+            { getPrompt('continue') }
           </Button>
         </>
       ),
@@ -240,7 +240,7 @@ mutation {
           <Button
             onClick={() => dispatch(currentClient().name) }
             disabled={ currentClient().name == '' }>
-              Continue
+            { getPrompt('continue') }
           </Button>
         </>
       ),
@@ -255,16 +255,25 @@ mutation {
           <div class='yearNumbers'>
             <Row>
               <Col sm={2} />
-              <Col sm={1}>
-                <i class="yearPlusMinus bi bi-plus-square-fill" onClick={() => setBirthYear(birthYear + 10)} />
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear + 25)}>
+                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 25</div>
+                </Button>
               </Col>
-              <Col sm={1}>
-                <i class="yearPlusMinus bi bi-plus-square-fill" onClick={() => setBirthYear(birthYear + 1)} />
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear + 10)}>
+                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 10</div>
+                </Button>
+              </Col>
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear + 1)}>
+                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 1</div>
+                </Button>
               </Col>
             </Row>
             <Row >
               { Array.from(birthYear.toString()).map( (d, i) => (
-                <Col key={i} sm={1}>
+                <Col key={i} sm={2}>
                   {d}
                 </Col>
               ))
@@ -279,18 +288,32 @@ mutation {
             </Row>
             <Row>
               <Col sm={2} />
-              <Col sm={1}>
-                <i class="yearPlusMinus bi bi-dash-square-fill" onClick={() => setBirthYear(birthYear - 10)} />
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear - 25)}>
+                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 25</div>
+                </Button>
               </Col>
-              <Col sm={1}>
-                <i class="yearPlusMinus bi bi-dash-square-fill" onClick={() => setBirthYear(birthYear - 1)} />
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear - 10)}>
+                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 10</div>
+                </Button>
+              </Col>
+              <Col sm={2}>
+                <Button size="sm" onClick={() => setBirthYear(birthYear - 1)}>
+                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 1</div>
+                </Button>
               </Col>
             </Row>
-            <Button onClick={() => {
-              dispatch(currentClient().birthYear);
-            }}>
-              Continue
-            </Button>
+            <Row>
+              <Col sm={9} />
+              <Col sm={3}>
+                <Button onClick={() => {
+                  dispatch(currentClient().birthYear);
+                }}>
+                  { getPrompt('continue') }
+                </Button>
+              </Col>
+            </Row>
           </div>
         );
       },
@@ -353,7 +376,7 @@ mutation {
             onClick={() => {
               dispatch(currentClient().phoneNumber)
             }}>
-              Continue
+            { getPrompt('continue') }
           </Button>
         </>
       ),
