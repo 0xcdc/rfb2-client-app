@@ -1,5 +1,6 @@
 import { Accordion, Button, Col, Container, Form, FormControl, ProgressBar, Row, Stack } from 'react-bootstrap';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { NumberPad } from './NumberPad.jsx';
 import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
 import graphQL from './graphQL.js';
 import { useImmer } from "use-immer";
@@ -18,16 +19,12 @@ export default function SelfService() {
   const [stepStack, setStepStack] = useState([{ step: 'welcomePage' }]);
   const [cities, setCities] = useState(null);
   const [household, setHousehold] = useImmer(null);
-  const [volunteerCode, setVolunteerCode] = useState("0000");
   const [currentClientIndex, setCurrentClientIndex] = useState(-1);
   const addressField = useRef(null);
 
-  const volunteerCodePress = value => {
-    const newCode = `${volunteerCode}${value}`.slice(1, 5);
-    if (newCode == "4578") {
+  const volunterKeyCodeOnChange = value => {
+    if (value == '4578') {
       navigate("/volunteer-review", { state: { household } });
-    } else {
-      setVolunteerCode(newCode);
     }
   }
 
@@ -413,9 +410,6 @@ mutation {
     },
     finishedPage: {
       jsx: () => {
-        const rows = [0, 1, 2];
-        const columns = [0, 1, 2];
-        const nRows = rows.length;
         return (
           <>
             <Accordion>
@@ -424,38 +418,7 @@ mutation {
                   Volunteer press to open
                 </Accordion.Header>
                 <Accordion.Body>
-                  <Row >
-                    {
-                      Array.from(volunteerCode).map( (d, i) => (
-                        <Col className='volunteerNumbers' key={i} sm={1}>
-                          {d}
-                        </Col>
-                      ))
-                    }
-                  </Row>
-                  <Stack gap={3} direction="horizontal" className="mx-auto">
-                    {
-                      columns.map( c => {
-                        return (
-                          <Stack key={c} gap={3} >
-                            {
-                              rows.map( r => {
-                                const index = c * nRows + r + 1;
-                                return (
-                                  <Button key={r}
-                                    className='selfServiceButton'
-                                    onClick={() => volunteerCodePress(index)}
-                                  >
-                                    {index}
-                                  </Button>
-                                );
-                              })
-                            }
-                          </Stack>
-                        );
-                      })
-                    }
-                  </Stack>
+                  <NumberPad onChange={volunterKeyCodeOnChange} />
                 </Accordion.Body>
               </Accordion.Item>
             </Accordion>
