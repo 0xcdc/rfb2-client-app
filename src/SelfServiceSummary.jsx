@@ -67,7 +67,7 @@ export default function SelfServiceSummary() {
     return newAddress;
   }
 
-  async function saveHousehold() {
+  async function saveHousehold(newTab) {
     setHeading('Saving...');
     const householdInput = { ...household };
     householdInput.clients = household.clients.map( c => (
@@ -116,6 +116,10 @@ mutation{recordVisit(
     setHeading('Done!');
     await delayPromise(1000);
 
+    if (newTab) {
+      window.open(`/households/${household.id}`, "_blank");
+    }
+
     navigate('/selfservice');
   }
 
@@ -157,7 +161,8 @@ mutation{recordVisit(
       <br />
       <Row>
         <Col>
-          <Button onClick={() => saveHousehold()}>Save Household</Button>
+          <Button onClick={() => saveHousehold(false)}>Save Household</Button>
+          <Button onClick={() => saveHousehold(true)}>Save Household & Open New Tab to Edit</Button>
         </Col>
       </Row>
     </Container>
