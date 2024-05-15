@@ -5,7 +5,7 @@ export function NumberPad(props) {
   const [number, setNumber] = useState('');
   const rows = [0, 1, 2, 3];
   const columns = [0, 1, 2];
-  const values = [7, 4, 1, 'C', 8, 5, 2, 0, 9, 6, 3, '⌫'];
+  const values = [1, 4, 7, 'C', 2, 5, 8, 0, 3, 6, 9, '⌫'];
 
   function buttonPress(value) {
     let newNumber;
