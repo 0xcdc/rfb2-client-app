@@ -1,8 +1,6 @@
 import { Button, Stack } from 'react-bootstrap';
-import { useState } from 'preact/hooks';
 
 export function NumberPad(props) {
-  const [number, setNumber] = useState('');
   const rows = [0, 1, 2, 3];
   const columns = [0, 1, 2];
   const values = [1, 4, 7, 'C', 2, 5, 8, 0, 3, 6, 9, '⌫'];
@@ -12,30 +10,18 @@ export function NumberPad(props) {
     if (value == 'C') {
       newNumber = '';
     } else if (value == '⌫') {
-      newNumber = number.slice(0, -1);
+      newNumber = props.number.slice(0, -1);
     } else { // 0-9
-      newNumber = `${number}${value}`.slice(-4, 5);
+      newNumber = `${props.number}${value}`.slice(-4, 5);
     }
 
-    setNumber(newNumber);
     props.onChange(newNumber);
   }
 
-  const stringToRender = `${number}____`.slice(0, 4);
+  const stringToRender = `${props.number}____`.slice(0, 4);
 
   return (
     <>
-      {/*
-      <Row >
-        {
-          Array.from(stringToRender).map( (d, i) => (
-            <Col className='volunteerNumbers' key={i} sm={1}>
-              <span>{d}</span>
-            </Col>
-          ))
-        }
-      </Row>
-      */}
       <Stack gap={1} direction="horizontal" className="mx-auto">
         {
           Array.from(stringToRender).map( (d, i) => (

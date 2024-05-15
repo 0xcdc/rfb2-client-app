@@ -1,4 +1,4 @@
-import { Accordion, Button, Col, Container, Form, FormControl, ProgressBar, Row, Stack } from 'react-bootstrap';
+import { Accordion, Button, Col, Container, FormControl, ProgressBar, Row, Stack } from 'react-bootstrap';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { NumberPad } from './NumberPad.jsx';
 import { addGoogleAddressAutoComplete } from './GoogleAddress.js';
@@ -11,7 +11,6 @@ function cancelPopup(e) {
 }
 
 const English = 0;
-const ThisYear = new Date().getFullYear();
 
 export default function SelfService() {
   const navigate = useNavigate();
@@ -20,11 +19,14 @@ export default function SelfService() {
   const [cities, setCities] = useState(null);
   const [household, setHousehold] = useImmer(null);
   const [currentClientIndex, setCurrentClientIndex] = useState(-1);
+  const [volunteerCode, setVolunteerCode] = useState("");
   const addressField = useRef(null);
 
-  const volunterKeyCodeOnChange = value => {
+  const volunterCodeOnChange = value => {
     if (value == '4578') {
       navigate("/volunteer-review", { state: { household } });
+    } else {
+      setVolunteerCode(value);
     }
   }
 
@@ -69,14 +71,17 @@ export default function SelfService() {
     return household.clients[currentClientIndex];
   }
 
-  const setBirthYear = year => {
+  const isValidBirthYear = year => {
+    const ThisYear = new Date().getFullYear();
     const age = ThisYear - year;
-    if (age < 0) {
-      year = ThisYear;
+    if ((age >= 0) && (age <= 100)) {
+      return true;
+    } else {
+      return false;
     }
-    if (age >= 100) {
-      year = ThisYear-99;
-    }
+  }
+
+  const setBirthYear = year => {
     setHousehold( draft => {
       draft.clients[currentClientIndex].birthYear = year;
     });
@@ -117,7 +122,6 @@ mutation {
 
     setHousehold( draft => {
       const { client } = json.data;
-      client.birthYear = ThisYear;
       draft.clients.push(client);
     });
     setCurrentClientIndex(currentClientIndex + 1);
@@ -249,69 +253,17 @@ mutation {
       jsx: dispatch => {
         const { birthYear } = currentClient();
         return (
-          <div class='yearNumbers'>
-            <Row>
-              <Col sm={2} />
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear + 25)}>
-                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 25</div>
-                </Button>
-              </Col>
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear + 10)}>
-                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 10</div>
-                </Button>
-              </Col>
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear + 1)}>
-                  <div class="yearPlusMinus"><i class="bi bi-plus-square-fill" /> 1</div>
-                </Button>
-              </Col>
-            </Row>
-            <Row >
-              { Array.from(birthYear.toString()).map( (d, i) => (
-                <Col key={i} sm={2}>
-                  {d}
-                </Col>
-              ))
-              }
-            </Row>
-            <Row>
-              <Col>
-                <Form.Range
-                  value={ThisYear - birthYear}
-                  onChange={e => setBirthYear(ThisYear - e.target.value)} />
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={2} />
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear - 25)}>
-                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 25</div>
-                </Button>
-              </Col>
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear - 10)}>
-                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 10</div>
-                </Button>
-              </Col>
-              <Col sm={2}>
-                <Button size="sm" onClick={() => setBirthYear(birthYear - 1)}>
-                  <div class="yearPlusMinus"><i class="bi bi-dash-square-fill" /> 1</div>
-                </Button>
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={9} />
-              <Col sm={3}>
-                <Button onClick={() => {
-                  dispatch(currentClient().birthYear);
-                }}>
-                  { getPrompt('continue') }
-                </Button>
-              </Col>
-            </Row>
-          </div>
+          <>
+            <NumberPad onChange={setBirthYear} number={birthYear} />
+            <br />
+            <Button size="lg" onClick={() => {
+              dispatch(currentClient().birthYear);
+            }}
+            disabled={!isValidBirthYear(birthYear)}
+            >
+              { getPrompt('continue') }
+            </Button>
+          </>
         );
       },
       clientAttribute: 'birthYear',
@@ -418,7 +370,7 @@ mutation {
                   Volunteer press to open
                 </Accordion.Header>
                 <Accordion.Body>
-                  <NumberPad onChange={volunterKeyCodeOnChange} />
+                  <NumberPad onChange={volunterCodeOnChange} number={volunteerCode} />
                 </Accordion.Body>
               </Accordion.Item>
             </Accordion>
