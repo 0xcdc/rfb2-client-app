@@ -223,7 +223,7 @@ mutation {
       progress: 50,
     },
     incomePage: {
-      getChoices: () => getTranslations(['income_level']).filter(c => c.id != 0),
+      getChoices: () => getTranslations(['income_level']),
       householdAttribute: 'incomeLevelId',
       nextStep: 'yourNamePage',
       progress: 75,
