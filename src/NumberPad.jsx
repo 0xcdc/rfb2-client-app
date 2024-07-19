@@ -25,7 +25,7 @@ export function NumberPad(props) {
       <Stack gap={1} direction="horizontal" className="mx-auto">
         {
           Array.from(stringToRender).map( (d, i) => (
-            <pre className='volunteerNumbers' key={i} sm={1}>
+            <pre className='numberPadNumbers' key={i} sm={1}>
               {d}
             </pre>
           ))
