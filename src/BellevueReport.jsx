@@ -308,6 +308,21 @@ class BellevueReport extends Component {
     const workbook = utils.book_new();
     Object.entries(this.reportTabs).forEach( ([label, aggFunc]) => {
       const data = aggFunc(unduplicatedVisits);
+      const cols = data[0].length;
+      const rows = data.length;
+      const bigA = 65;
+      const lastLetter = String.fromCharCode(bigA + cols - 1);
+
+      data[0].push('Total');
+      for (let ri=1; ri < rows; ri++) {
+        data[ri].push({ f: `sum(B${ri+1}:${lastLetter}${ri+1})` });
+      }
+
+      data.push(['Total']);
+      for (let ci=1; ci <= cols; ci++) {
+        const colLetter = String.fromCharCode(bigA + ci);
+        data[rows].push({ f: `sum(${colLetter}2:${colLetter}${rows})` });
+      }
       const worksheet = utils.aoa_to_sheet(data);
       utils.book_append_sheet(workbook, worksheet, label);
     });
