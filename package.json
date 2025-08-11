@@ -12,23 +12,23 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "bootstrap": "^5.3.3",
-    "bootstrap-icons": "^1.11.3",
-    "luxon": "^3.5.0",
-    "preact": "^10.25.4",
-    "react-bootstrap": "^2.10.7",
+    "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
+    "luxon": "^3.7.1",
+    "preact": "^10.27.0",
+    "react-bootstrap": "^2.10.10",
     "react-idle-timer": "^5.7.2",
-    "react-router-dom": "^7.1.1",
+    "react-router-dom": "^7.8.0",
     "use-immer": "^0.11.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.9.4",
+    "@preact/preset-vite": "^2.10.2",
     "eslint": "^8.57.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-preact": "^1.5.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jest": "^29.7.0",
-    "vite": "^6.0.7"
+    "vite": "^6.3.5"
   }
 }
